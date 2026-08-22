@@ -100,7 +100,7 @@
   .btn-add:hover{ background: var(--accent-dark); color:#fff; }
   .err{ grid-column:1/-1; color: var(--danger); font-size:12px; display:none; }
 
-  .filters{ display:flex; gap:6px; margin-bottom:18px; flex-wrap:wrap; }
+  .filters{ display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap; }
   .tab{
     padding:6px 13px; border-radius:999px; border:1px solid var(--line); background:transparent;
     color: var(--text-soft); font-size:12px; cursor:pointer; font-family:'IBM Plex Mono', monospace;
@@ -279,6 +279,12 @@
     </div>
   </div>
 
+  <!-- 新增：年份篩選頁籤 -->
+  <div class="filters" id="yearFilters">
+    <button class="tab active" data-year="all">全部年份</button>
+  </div>
+
+  <!-- 原有：平台篩選頁籤 -->
   <div class="filters" id="platformFilters">
     <button class="tab active" data-plat="all">全部平台</button>
     <button class="tab" data-plat="IG">Instagram</button>
@@ -318,6 +324,7 @@
   let caseCounter = 0;
   let lastYear = new Date().getFullYear();
   let currentPlat = 'all';
+  let currentYear = 'all'; // 新增：目前選取的年份
   let selectedPlatforms = [];
   let selectedTypes = [];
   let selectedModes = [];
@@ -340,6 +347,7 @@
       } else {
         cases = [];
       }
+      renderYearFilters(); // 更新年份按鈕
       render();
     });
 
@@ -354,6 +362,7 @@
 
   function uid(){ return 'c' + Date.now() + Math.random().toString(36).slice(2,7); }
 
+  // 取得該案件的目標年份（優先以合作日期為主）
   function getTargetYear(dates) {
     const d = dates || {};
     const collabDate = d.collab || d.collabStart;
@@ -603,8 +612,33 @@
     return d.innerHTML;
   }
 
+  // 新增：動態繪製年份按鈕
+  function renderYearFilters(){
+    const yearSet = new Set();
+    cases.forEach(c => {
+      const y = getTargetYear(c.dates);
+      if(y) yearSet.add(y);
+    });
+
+    const sortedYears = Array.from(yearSet).sort((a,b) => b - a); // 倒序（最新年份在前面）
+    const container = document.getElementById('yearFilters');
+    
+    let html = `<button class="tab ${currentYear === 'all' ? 'active' : ''}" data-year="all">全部年份</button>`;
+    sortedYears.forEach(y => {
+      html += `<button class="tab ${String(currentYear) === String(y) ? 'active' : ''}" data-year="${y}">${y} 年</button>`;
+    });
+    
+    container.innerHTML = html;
+  }
+
   function render(){
-    const filtered = currentPlat === 'all' ? cases : cases.filter(c => c.platforms && c.platforms.includes(currentPlat));
+    // 依據年份與平台同時篩選資料
+    const filtered = cases.filter(c => {
+      const matchPlat = currentPlat === 'all' || (c.platforms && c.platforms.includes(currentPlat));
+      const caseYear = String(getTargetYear(c.dates));
+      const matchYear = currentYear === 'all' || caseYear === String(currentYear);
+      return matchPlat && matchYear;
+    });
 
     const active = filtered.filter(c => c.stage !== '已收款').length;
     const pending = filtered.filter(c => c.stage === '待請款').reduce((s,c) => s + getEffectiveFee(c), 0);
@@ -761,6 +795,17 @@
     }
   });
 
+  // 新增：年份篩選按鈕點擊事件
+  document.getElementById('yearFilters').addEventListener('click', e => {
+    const btn = e.target.closest('.tab');
+    if(!btn) return;
+    document.querySelectorAll('#yearFilters .tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentYear = btn.dataset.year;
+    render();
+  });
+
+  // 原有：平台篩選按鈕點擊事件
   document.getElementById('platformFilters').addEventListener('click', e => {
     const btn = e.target.closest('.tab');
     if(!btn) return;
