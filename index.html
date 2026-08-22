@@ -279,12 +279,12 @@
     </div>
   </div>
 
-  <!-- 新增：年份篩選頁籤 -->
+  <!-- 年份篩選頁籤 -->
   <div class="filters" id="yearFilters">
     <button class="tab active" data-year="all">全部年份</button>
   </div>
 
-  <!-- 原有：平台篩選頁籤 -->
+  <!-- 平台篩選頁籤 -->
   <div class="filters" id="platformFilters">
     <button class="tab active" data-plat="all">全部平台</button>
     <button class="tab" data-plat="IG">Instagram</button>
@@ -303,7 +303,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { 
-    getDatabase, ref, set, onValue, remove, update 
+    getDatabase, ref, set, get, onValue, remove, update 
   } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
   const firebaseConfig = {
@@ -321,10 +321,8 @@
   const db = getDatabase(app);
 
   let cases = [];
-  let caseCounter = 0;
-  let lastYear = new Date().getFullYear();
   let currentPlat = 'all';
-  let currentYear = 'all'; // 新增：目前選取的年份
+  let currentYear = 'all';
   let selectedPlatforms = [];
   let selectedTypes = [];
   let selectedModes = [];
@@ -347,16 +345,8 @@
       } else {
         cases = [];
       }
-      renderYearFilters(); // 更新年份按鈕
+      renderYearFilters();
       render();
-    });
-
-    onValue(ref(db, 'meta/counter'), (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        caseCounter = data.caseCounter || 0;
-        lastYear = data.lastYear || new Date().getFullYear();
-      }
     });
   }
 
@@ -373,20 +363,19 @@
     return new Date().getFullYear();
   }
 
+  // 修改：獨立維護各個年份的計數器，切換年份時編號持續累加不歸零
   async function generateCaseNo(dates){
     const targetYear = getTargetYear(dates);
-
-    if (targetYear !== lastYear) {
-      lastYear = targetYear;
-      caseCounter = 1;
-    } else {
-      caseCounter += 1;
-    }
-
-    await set(ref(db, 'meta/counter'), { caseCounter, lastYear });
+    const counterRef = ref(db, `meta/counters/${targetYear}`);
+    
+    const snapshot = await get(counterRef);
+    let currentCounter = snapshot.exists() ? snapshot.val() : 0;
+    
+    currentCounter += 1;
+    await set(counterRef, currentCounter);
 
     const yearSuffix = String(targetYear).slice(-2);
-    const sequence = String(caseCounter).padStart(4, '0');
+    const sequence = String(currentCounter).padStart(4, '0');
     return `${yearSuffix}-${sequence}`;
   }
 
@@ -612,7 +601,6 @@
     return d.innerHTML;
   }
 
-  // 新增：動態繪製年份按鈕
   function renderYearFilters(){
     const yearSet = new Set();
     cases.forEach(c => {
@@ -620,7 +608,7 @@
       if(y) yearSet.add(y);
     });
 
-    const sortedYears = Array.from(yearSet).sort((a,b) => b - a); // 倒序（最新年份在前面）
+    const sortedYears = Array.from(yearSet).sort((a,b) => b - a);
     const container = document.getElementById('yearFilters');
     
     let html = `<button class="tab ${currentYear === 'all' ? 'active' : ''}" data-year="all">全部年份</button>`;
@@ -632,7 +620,6 @@
   }
 
   function render(){
-    // 依據年份與平台同時篩選資料
     const filtered = cases.filter(c => {
       const matchPlat = currentPlat === 'all' || (c.platforms && c.platforms.includes(currentPlat));
       const caseYear = String(getTargetYear(c.dates));
@@ -795,7 +782,6 @@
     }
   });
 
-  // 新增：年份篩選按鈕點擊事件
   document.getElementById('yearFilters').addEventListener('click', e => {
     const btn = e.target.closest('.tab');
     if(!btn) return;
@@ -805,7 +791,6 @@
     render();
   });
 
-  // 原有：平台篩選按鈕點擊事件
   document.getElementById('platformFilters').addEventListener('click', e => {
     const btn = e.target.closest('.tab');
     if(!btn) return;
