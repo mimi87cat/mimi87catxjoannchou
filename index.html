@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>合作總覽 - Realtime Database 版</title>
+<!-- 載入 SheetJS 套件用於 Excel 匯入/匯出 -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Noto+Sans+TC:wght@500;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap');
 
@@ -43,18 +45,18 @@
   .header p{ margin:0; color: var(--text-soft); font-size:13px; }
 
   .user-bar{
-    display:flex; align-items:center; gap:10px;
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
   }
   .user-avatar{
     width:30px; height:30px; border-radius:50%; object-fit:cover;
     border:1px solid var(--line);
   }
   .user-name{ font-size:12.5px; color: var(--text-soft); }
-  .btn-logout{
+  .btn-logout, .btn-account{
     background:transparent; border:1px solid var(--line); color: var(--text-soft);
     border-radius:7px; padding:7px 12px; font-size:12.5px; cursor:pointer; font-family:'Inter';
   }
-  .btn-logout:hover{ border-color: var(--accent); color: var(--text); }
+  .btn-logout:hover, .btn-account:hover{ border-color: var(--accent); color: var(--text); }
 
   .stats{ display:flex; gap:12px; margin-bottom:24px; flex-wrap:wrap; }
   .stat{
@@ -214,13 +216,6 @@
     font-family:'Space Grotesk', 'Noto Sans TC', sans-serif; font-size:26px; margin:0 0 6px;
   }
   .login-card p{ color: var(--text-soft); font-size:13px; margin:0 0 26px; }
-  .btn-google{
-    display:flex; align-items:center; justify-content:center; gap:10px;
-    width:100%; background:#fff; color:#3C3C3C; border:none; border-radius:8px;
-    padding:12px; font-size:14px; font-weight:600; cursor:pointer; font-family:'Inter';
-  }
-  .btn-google:hover{ background:#F1F1F1; }
-  .btn-google svg{ width:18px; height:18px; }
   .login-form{ display:flex; flex-direction:column; gap:10px; text-align:left; }
   .login-form label{ font-size:11.5px; color: var(--text-soft); margin-bottom:3px; display:block; }
   .login-form input{
@@ -248,12 +243,6 @@
     font-family:'Inter'; text-decoration:underline; padding:0;
   }
 
-  .btn-account{
-    background:transparent; border:1px solid var(--line); color: var(--text-soft);
-    border-radius:7px; padding:7px 12px; font-size:12.5px; cursor:pointer; font-family:'Inter';
-  }
-  .btn-account:hover{ border-color: var(--accent); color: var(--text); }
-
   .modal-overlay{
     position:fixed; inset:0; background: rgba(0,0,0,0.55);
     display:flex; align-items:center; justify-content:center;
@@ -261,7 +250,7 @@
   }
   .modal-card{
     background: var(--bg-panel); border:1px solid var(--line); border-radius:16px;
-    padding:28px; max-width:400px; width:100%; max-height:88vh; overflow-y:auto;
+    padding:28px; max-width:400px; width:100%; max-height:88vh; overflow-y:auto; position:relative;
   }
   .modal-card h2{
     font-family:'Space Grotesk', 'Noto Sans TC', sans-serif; font-size:20px; margin:0 0 18px;
@@ -274,7 +263,6 @@
     position:absolute; top:16px; right:18px; background:none; border:none;
     color: var(--text-soft); font-size:18px; cursor:pointer;
   }
-  .modal-card{ position:relative; }
   .danger-zone{
     border:1px solid rgba(232,93,93,0.4); border-radius:10px; padding:14px;
     background: rgba(232,93,93,0.06);
@@ -333,6 +321,9 @@
     </div>
     <div class="user-bar">
       <span class="user-name" id="userName"></span>
+      <button class="btn-account" id="btnExportExcel">匯出 Excel</button>
+      <button class="btn-account" id="btnImportExcel">匯入 Excel</button>
+      <input type="file" id="fileImportExcel" accept=".xlsx, .xls, .csv" style="display:none;" />
       <button class="btn-account" id="btnAccountSettings">帳號設定</button>
       <button class="btn-logout" id="btnLogout">登出</button>
     </div>
@@ -757,7 +748,6 @@
   });
 
   onAuthStateChanged(auth, (user) => {
-    // 使用者狀態改變時，先移除舊的即時監聽，避免資料混雜或殘留權限錯誤
     if(casesRef){
       off(casesRef);
       casesRef = null;
@@ -778,15 +768,80 @@
 
   // ---------- 資料同步（依使用者 UID 區隔） ----------
 
+  /*
+   * 自動移動規則：
+   * 當案件目前為「待審核」，且今天已經到達「合作日期」，
+   * 就自動把階段更新為「待請款」。
+   *
+   * 單一合作日期：dates.collab
+   * 合作區間（團購／分潤）：使用 dates.collabEnd（合作結束日期）
+   *
+   * 這裡會直接寫回 Firebase，因此重新整理頁面後狀態也會保留。
+   */
+  async function autoMoveApprovedCasesToPending() {
+    if (!currentUser || !cases || cases.length === 0) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const updates = {};
+
+    cases.forEach(c => {
+      if (c.stage !== '待審核') return;
+
+      const d = c.dates || {};
+
+      // 一般案件使用合作日期；團購／分潤等區間案件使用合作結束日期
+      const isComm = c.modes && (c.modes.includes('團購') || c.modes.includes('分潤'));
+      const collabDate = isComm
+        ? (d.collabEnd || d.collab)
+        : d.collab;
+      if (!collabDate) return;
+
+      // 避免時區造成 YYYY-MM-DD 被誤判成前一天
+      const collabDay = new Date(collabDate + 'T00:00:00');
+      if (isNaN(collabDay.getTime())) return;
+
+      collabDay.setHours(0, 0, 0, 0);
+
+      // 「已到合作日期」包含合作日期當天
+      if (today >= collabDay) {
+        updates[`users/${currentUser.uid}/cases/${c.id}/stage`] = '待請款';
+      }
+    });
+
+    if (Object.keys(updates).length === 0) return;
+
+    try {
+      await update(ref(db), updates);
+      console.log(
+        '已自動將合作日期到期的待審核案件移至待請款：',
+        Object.keys(updates).length,
+        '筆'
+      );
+    } catch (e) {
+      console.error('自動移動案件階段失敗：', e);
+    }
+  }
+
   function initRealtimeSync(uid) {
     casesRef = ref(db, `users/${uid}/cases`);
-    onValue(casesRef, (snapshot) => {
+    onValue(casesRef, async (snapshot) => {
       const data = snapshot.val();
+
       if (data) {
         cases = Object.keys(data).map(key => ({ id: key, ...data[key] }));
       } else {
         cases = [];
       }
+
+      /*
+       * 先檢查是否有「待審核」案件已經到合作日期。
+       * update() 寫回 Firebase 後，onValue 會再次觸發，
+       * 但已移到「待請款」的案件不會再次符合條件。
+       */
+      await autoMoveApprovedCasesToPending();
+
       renderYearFilters();
       render();
     });
@@ -794,7 +849,6 @@
 
   function uid(){ return 'c' + Date.now() + Math.random().toString(36).slice(2,7); }
 
-  // 取得該案件的目標年份（優先以合作日期為主）
   function getTargetYear(dates) {
     const d = dates || {};
     const collabDate = d.collab || d.collabStart;
@@ -805,7 +859,6 @@
     return new Date().getFullYear();
   }
 
-  // 各使用者獨立維護各年份的編號計數器，切換年份時編號持續累加不歸零
   async function generateCaseNo(dates){
     const targetYear = getTargetYear(dates);
     const counterRef = ref(db, `users/${currentUser.uid}/meta/counters/${targetYear}`);
@@ -1316,6 +1369,163 @@
     btn.classList.add('active');
     currentPlat = btn.dataset.plat;
     render();
+  });
+
+  // 頁面持續開啟時，每 60 秒再檢查一次日期。
+  // 這樣跨過午夜後，也能自動把符合條件的「待審核」案件移到「待請款」。
+  setInterval(() => {
+    autoMoveApprovedCasesToPending();
+  }, 60000);
+
+  // ---------- Excel 匯出功能 ----------
+  document.getElementById('btnExportExcel').addEventListener('click', () => {
+    if (!cases || cases.length === 0) {
+      alert('目前沒有資料可供匯出');
+      return;
+    }
+
+    const excelData = cases.map(c => {
+      const d = c.dates || {};
+      return {
+        '案件編號': c.caseNo || '',
+        '階段': c.stage || '',
+        '品牌': c.brand || '',
+        '產品': c.product || '',
+        '保底金額': c.fee || 0,
+        '合作平台': (c.platforms || []).join(', '),
+        '合作項目': (c.types || []).join(', '),
+        '合作模式': (c.modes || []).join(', '),
+        '分潤/團購比例(%)': c.commissionRate ?? '',
+        '總銷售金額': c.salesAmount ?? '',
+        '簽約日期': d.contract || '',
+        '初稿截止日': d.draft || '',
+        '合作日期': d.collab || '',
+        '合作開始日': d.collabStart || '',
+        '合作結束日': d.collabEnd || '',
+        '是否有競業條款': c.hasNonCompete ? '是' : '否',
+        '競業截止日': c.nonCompeteDate || '',
+        '授權類型': (c.authTypes || []).join(', '),
+        '授權截止日': c.authDate || ''
+      };
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, '合作案件');
+
+    const today = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(workbook, `合作案件總覽_${today}.xlsx`);
+  });
+
+  // ---------- Excel 匯入功能 ----------
+  document.getElementById('btnImportExcel').addEventListener('click', () => {
+    document.getElementById('fileImportExcel').click();
+  });
+
+  document.getElementById('fileImportExcel').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file || !currentUser) return;
+
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const data = new Uint8Array(evt.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        const rows = XLSX.utils.sheet_to_json(worksheet);
+
+        if (rows.length === 0) {
+          alert('匯入的檔案無資料！');
+          return;
+        }
+
+        let importCount = 0;
+        const maxCountersByYear = {};
+
+        for (const row of rows) {
+          const brand = row['品牌'] ? String(row['品牌']).trim() : '';
+          if (!brand) continue;
+
+          const dates = {
+            contract: row['簽約日期'] || null,
+            draft: row['初稿截止日'] || null,
+            collab: row['合作日期'] || null,
+            collabStart: row['合作開始日'] || null,
+            collabEnd: row['合作結束日'] || null
+          };
+
+          const targetYear = getTargetYear(dates);
+          let caseNo = row['案件編號'] ? String(row['案件編號']).trim() : '';
+
+          if (caseNo) {
+            const parts = caseNo.split('-');
+            if (parts.length === 2) {
+              const seq = parseInt(parts[1], 10);
+              if (!isNaN(seq)) {
+                if (!maxCountersByYear[targetYear] || seq > maxCountersByYear[targetYear]) {
+                  maxCountersByYear[targetYear] = seq;
+                }
+              }
+            }
+          } else {
+            const yearCounterRef = ref(db, `users/${currentUser.uid}/meta/counters/${targetYear}`);
+            const currentMax = maxCountersByYear[targetYear];
+
+            if (currentMax === undefined) {
+              const snapshot = await get(yearCounterRef);
+              maxCountersByYear[targetYear] = snapshot.exists() ? snapshot.val() : 0;
+            }
+
+            maxCountersByYear[targetYear] += 1;
+
+            const yearSuffix = String(targetYear).slice(-2);
+            const sequence = String(maxCountersByYear[targetYear]).padStart(4, '0');
+            caseNo = `${yearSuffix}-${sequence}`;
+          }
+
+          const newId = uid();
+          const newCase = {
+            caseNo,
+            brand,
+            product: row['產品'] || '',
+            fee: Number(row['保底金額']) || 0,
+            platforms: row['合作平台'] ? String(row['合作平台']).split(',').map(s => s.trim()) : ['其他'],
+            types: row['合作項目'] ? String(row['合作項目']).split(',').map(s => s.trim()) : ['其他'],
+            modes: row['合作模式'] ? String(row['合作模式']).split(',').map(s => s.trim()) : [],
+            commissionRate: row['分潤/團購比例(%)'] !== undefined && row['分潤/團購比例(%)'] !== '' ? Number(row['分潤/團購比例(%)']) : null,
+            salesAmount: row['總銷售金額'] !== undefined && row['總銷售金額'] !== '' ? Number(row['總銷售金額']) : null,
+            dates,
+            hasNonCompete: row['是否有競業條款'] === '是',
+            nonCompeteDate: row['競業截止日'] || null,
+            authTypes: row['授權類型'] ? String(row['授權類型']).split(',').map(s => s.trim()) : [],
+            authDate: row['授權截止日'] || null,
+            stage: row['階段'] || '製作中',
+            createdAt: Date.now()
+          };
+
+          await set(ref(db, `users/${currentUser.uid}/cases/${newId}`), newCase);
+          importCount++;
+        }
+
+        for (const [yr, maxSeq] of Object.entries(maxCountersByYear)) {
+          const counterRef = ref(db, `users/${currentUser.uid}/meta/counters/${yr}`);
+          const snapshot = await get(counterRef);
+          const currentInDb = snapshot.exists() ? snapshot.val() : 0;
+          if (maxSeq > currentInDb) {
+            await set(counterRef, maxSeq);
+          }
+        }
+
+        alert(`成功匯入 ${importCount} 筆案件！編號已自動銜接更新。`);
+        e.target.value = '';
+      } catch (err) {
+        console.error('匯入失敗：', err);
+        alert('檔案解析失敗，請確認檔案格式是否正確。');
+      }
+    };
+
+    reader.readAsArrayBuffer(file);
   });
 </script>
 </body>
