@@ -169,6 +169,31 @@
 
   .empty-col{ border: 1px dashed var(--line); border-radius:8px; padding:20px 10px; text-align:center; color: var(--text-soft); font-size:12px; }
 
+  .deadline-banner{
+    background: rgba(255,216,115,0.12); border:1px solid rgba(255,216,115,0.4);
+    border-radius:12px; padding:14px 16px; margin-bottom:20px; display:none;
+  }
+  .deadline-banner.show{ display:block; }
+  .deadline-banner h3{
+    margin:0 0 8px; font-size:13px; color: var(--butter); display:flex; align-items:center; gap:6px;
+  }
+  .deadline-list{ display:flex; flex-direction:column; gap:6px; }
+  .deadline-item{
+    display:flex; justify-content:space-between; align-items:center;
+    font-size:12.5px; background: rgba(255,255,255,0.04); border-radius:7px; padding:7px 10px;
+  }
+  .deadline-item .name{ color: var(--text); }
+  .deadline-item .days{
+    font-family:'IBM Plex Mono', monospace; font-size:11.5px; font-weight:600;
+  }
+  .deadline-item .days.today{ color: var(--danger); }
+  .note-deadline-badge{
+    display:inline-block; font-size:10.5px; font-family:'IBM Plex Mono', monospace;
+    font-weight:600; padding:2px 7px; border-radius:999px; margin-bottom:6px;
+    background: rgba(255,216,115,0.35); color:#5A3D00;
+  }
+  .note-deadline-badge.today{ background: rgba(232,93,93,0.35); color:#5A0F0F; }
+
   /* login overlay */
   .login-overlay{
     position:fixed; inset:0; background: var(--bg);
@@ -307,6 +332,11 @@
     </div>
   </div>
 
+  <div class="deadline-banner" id="deadlineBanner">
+    <h3>⏰ 即將到期的初稿</h3>
+    <div class="deadline-list" id="deadlineList"></div>
+  </div>
+
   <div class="stats">
     <div class="stat">
       <div class="l">進行中案件</div>
@@ -331,15 +361,11 @@
       <div class="field-label">重要日期</div>
       <div class="date-fields">
         <div class="date-field">
-          <label for="inputDateNegotiate">洽談日期</label>
-          <input type="date" id="inputDateNegotiate">
-        </div>
-        <div class="date-field">
           <label for="inputDateContract">簽約日期</label>
           <input type="date" id="inputDateContract">
         </div>
         <div class="date-field">
-          <label for="inputDateDraft">初稿繳交日期</label>
+          <label for="inputDateDraft">初稿繳交截止日</label>
           <input type="date" id="inputDateDraft">
         </div>
         <div class="date-field" id="singleCollabDateWrap">
@@ -794,7 +820,6 @@
     document.getElementById('inputBrand').value = '';
     document.getElementById('inputProduct').value = '';
     document.getElementById('inputFee').value = '';
-    document.getElementById('inputDateNegotiate').value = '';
     document.getElementById('inputDateContract').value = '';
     document.getElementById('inputDateDraft').value = '';
     document.getElementById('inputDateCollab').value = '';
@@ -872,7 +897,6 @@
     const fee = Number(document.getElementById('inputFee').value) || 0;
 
     const dates = {
-      negotiate: document.getElementById('inputDateNegotiate').value || null,
       contract: document.getElementById('inputDateContract').value || null,
       draft: document.getElementById('inputDateDraft').value || null,
       collab: !needsRate ? (document.getElementById('inputDateCollab').value || null) : null,
@@ -915,7 +939,6 @@
     document.getElementById('inputFee').value = c.fee || '';
 
     const d = c.dates || {};
-    document.getElementById('inputDateNegotiate').value = d.negotiate || '';
     document.getElementById('inputDateContract').value = d.contract || '';
     document.getElementById('inputDateDraft').value = d.draft || '';
     document.getElementById('inputDateCollab').value = d.collab || '';
@@ -1011,6 +1034,42 @@
     return d.innerHTML;
   }
 
+  function daysUntil(dateStr){
+    const today = new Date(); today.setHours(0,0,0,0);
+    const target = new Date(dateStr); target.setHours(0,0,0,0);
+    return Math.round((target - today) / 86400000);
+  }
+
+  function renderDeadlineBanner(allCases){
+    const upcoming = allCases
+      .filter(c => {
+        if(!c.dates || !c.dates.draft) return false;
+        if(['已上稿','待請款','已收款'].includes(c.stage)) return false;
+        const days = daysUntil(c.dates.draft);
+        return days >= 0 && days <= 7;
+      })
+      .map(c => ({ c, days: daysUntil(c.dates.draft) }))
+      .sort((a,b) => a.days - b.days);
+
+    const banner = document.getElementById('deadlineBanner');
+    const list = document.getElementById('deadlineList');
+
+    if(upcoming.length === 0){
+      banner.classList.remove('show');
+      list.innerHTML = '';
+      return;
+    }
+
+    banner.classList.add('show');
+    list.innerHTML = upcoming.map(({ c, days }) => {
+      const label = days === 0 ? '今天截止' : days + ' 天後截止';
+      return '<div class="deadline-item">'
+        + '<span class="name">' + (c.caseNo ? c.caseNo + ' · ' : '') + escapeHtml(c.brand) + '</span>'
+        + '<span class="days' + (days === 0 ? ' today' : '') + '">' + label + '</span>'
+        + '</div>';
+    }).join('');
+  }
+
   function renderYearFilters(){
     const yearSet = new Set();
     cases.forEach(c => {
@@ -1030,6 +1089,8 @@
   }
 
   function render(){
+    renderDeadlineBanner(cases);
+
     const filtered = cases.filter(c => {
       const matchPlat = currentPlat === 'all' || (c.platforms && c.platforms.includes(currentPlat));
       const caseYear = String(getTargetYear(c.dates));
@@ -1068,7 +1129,6 @@
             }
 
             const dateChips = [
-              d.negotiate ? '洽 ' + fmtDue(d.negotiate) : null,
               d.contract ? '簽 ' + fmtDue(d.contract) : null,
               d.draft ? '稿 ' + fmtDue(d.draft) : null,
               collabStr
@@ -1077,6 +1137,15 @@
             const isComm = c.modes && (c.modes.includes('團購') || c.modes.includes('分潤'));
             const showSalesInput = isComm && (c.stage === '待請款' || c.stage === '已收款');
             const effectiveFee = getEffectiveFee(c);
+
+            let deadlineBadgeHtml = '';
+            if(d.draft && !['已上稿','待請款','已收款'].includes(c.stage)){
+              const daysLeft = daysUntil(d.draft);
+              if(daysLeft >= 0 && daysLeft <= 7){
+                const label = daysLeft === 0 ? '今天截止' : daysLeft + ' 天後截止';
+                deadlineBadgeHtml = '<span class="note-deadline-badge' + (daysLeft === 0 ? ' today' : '') + '">⏰ ' + label + '</span><br>';
+              }
+            }
 
             let salesInputHtml = '';
             if(showSalesInput){
@@ -1088,6 +1157,7 @@
 
             return '<div class="note ' + noteClass + '" onclick="if(!event.target.closest(\'select, button, input\')) editCase(\'' + c.id + '\')">'
               + (c.caseNo ? '<p class="note-no">' + c.caseNo + '</p>' : '')
+              + deadlineBadgeHtml
               + '<p class="note-brand">' + escapeHtml(c.brand) + '</p>'
               + (c.product ? '<p class="note-product">' + escapeHtml(c.product) + '</p>' : '')
               + '<p class="note-type">' + (c.platforms||[]).join('／') + ' · ' + (c.types||[]).join('／') + '</p>'
