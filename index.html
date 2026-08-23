@@ -169,6 +169,12 @@
 
   .empty-col{ border: 1px dashed var(--line); border-radius:8px; padding:20px 10px; text-align:center; color: var(--text-soft); font-size:12px; }
 
+  .col-more-btn{
+    width:100%; background:transparent; border:1px dashed var(--line); color: var(--text-soft);
+    border-radius:8px; padding:9px; font-size:12px; cursor:pointer; font-family:'Inter'; margin-top:2px;
+  }
+  .col-more-btn:hover{ border-color: var(--accent); color: var(--text); }
+
   .deadline-banner{
     background: rgba(255,216,115,0.12); border:1px solid rgba(255,216,115,0.4);
     border-radius:12px; padding:14px 16px; margin-bottom:20px; display:none;
@@ -534,9 +540,14 @@
   let editingId = null;
   let currentUser = null;
   let casesRef = null;
+  let expandedStages = new Set();
+
+  function getSortDate(c){
+    const d = c.dates || {};
+    return d.draft || d.collabStart || d.collab || d.contract || null;
+  }
 
   const STAGES = [
-    { key:'洽談中', dot: 'var(--sky)' },
     { key:'製作中', dot: 'var(--butter)' },
     { key:'待審核', dot: 'var(--pink)' },
     { key:'已上稿', dot: 'var(--accent)' },
@@ -917,7 +928,7 @@
         brand, platforms, types, modes, product, fee, dates, hasNonCompete, nonCompeteDate,
         authTypes, authDate, commissionRate,
         salesAmount: null,
-        stage: '洽談中',
+        stage: '製作中',
         createdAt: Date.now()
       });
     }
@@ -1108,10 +1119,21 @@
 
     const board = document.getElementById('board');
     board.innerHTML = STAGES.map((stage) => {
-      const items = filtered.filter(c => c.stage === stage.key)
-        .sort((a,b) => b.createdAt - a.createdAt);
+      const allItems = filtered.filter(c => c.stage === stage.key)
+        .sort((a,b) => {
+          const da = getSortDate(a);
+          const db_ = getSortDate(b);
+          if(da && db_) return new Date(da) - new Date(db_);
+          if(da) return -1;
+          if(db_) return 1;
+          return b.createdAt - a.createdAt;
+        });
 
-      const notesHtml = items.length === 0
+      const isExpanded = expandedStages.has(stage.key);
+      const items = isExpanded ? allItems : allItems.slice(0, 3);
+      const hiddenCount = allItems.length - items.length;
+
+      const notesHtml = allItems.length === 0
         ? '<div class="empty-col">尚無案件</div>'
         : items.map((c, i) => {
             const overdue = isOverdue(c);
@@ -1177,16 +1199,33 @@
               + '</div>';
           }).join('');
 
+      const moreBtnHtml = hiddenCount > 0
+        ? '<button class="col-more-btn" onclick="toggleStageExpand(\'' + stage.key + '\')">看更多（還有 ' + hiddenCount + ' 筆）</button>'
+        : (isExpanded && allItems.length > 3
+            ? '<button class="col-more-btn" onclick="toggleStageExpand(\'' + stage.key + '\')">收合</button>'
+            : '');
+
       return '<div class="col">'
         + '<div class="col-head">'
         + '<span class="col-dot" style="background:' + stage.dot + '"></span>'
         + '<h3>' + stage.key + '</h3>'
-        + '<span class="col-count">' + items.length + '</span>'
+        + '<span class="col-count">' + allItems.length + '</span>'
         + '</div>'
         + notesHtml
+        + moreBtnHtml
         + '</div>';
     }).join('');
   }
+
+  function toggleStageExpand(stageKey){
+    if(expandedStages.has(stageKey)){
+      expandedStages.delete(stageKey);
+    }else{
+      expandedStages.add(stageKey);
+    }
+    render();
+  }
+  window.toggleStageExpand = toggleStageExpand;
 
   document.getElementById('inputHasNonCompete').addEventListener('change', e => {
     document.getElementById('nonCompeteDateWrap').classList.toggle('show', e.target.checked);
