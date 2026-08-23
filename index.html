@@ -42,6 +42,20 @@
   }
   .header p{ margin:0; color: var(--text-soft); font-size:13px; }
 
+  .user-bar{
+    display:flex; align-items:center; gap:10px;
+  }
+  .user-avatar{
+    width:30px; height:30px; border-radius:50%; object-fit:cover;
+    border:1px solid var(--line);
+  }
+  .user-name{ font-size:12.5px; color: var(--text-soft); }
+  .btn-logout{
+    background:transparent; border:1px solid var(--line); color: var(--text-soft);
+    border-radius:7px; padding:7px 12px; font-size:12.5px; cursor:pointer; font-family:'Inter';
+  }
+  .btn-logout:hover{ border-color: var(--accent); color: var(--text); }
+
   .stats{ display:flex; gap:12px; margin-bottom:24px; flex-wrap:wrap; }
   .stat{
     flex:1; min-width:140px; background: var(--bg-panel); border:1px solid var(--line);
@@ -155,6 +169,31 @@
 
   .empty-col{ border: 1px dashed var(--line); border-radius:8px; padding:20px 10px; text-align:center; color: var(--text-soft); font-size:12px; }
 
+  /* login overlay */
+  .login-overlay{
+    position:fixed; inset:0; background: var(--bg);
+    display:flex; align-items:center; justify-content:center;
+    z-index:100; padding:20px;
+  }
+  .login-card{
+    background: var(--bg-panel); border:1px solid var(--line); border-radius:16px;
+    padding:36px 32px; text-align:center; max-width:340px; width:100%;
+  }
+  .login-card h1{
+    font-family:'Space Grotesk', 'Noto Sans TC', sans-serif; font-size:26px; margin:0 0 6px;
+  }
+  .login-card p{ color: var(--text-soft); font-size:13px; margin:0 0 26px; }
+  .btn-google{
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    width:100%; background:#fff; color:#3C3C3C; border:none; border-radius:8px;
+    padding:12px; font-size:14px; font-weight:600; cursor:pointer; font-family:'Inter';
+  }
+  .btn-google:hover{ background:#F1F1F1; }
+  .btn-google svg{ width:18px; height:18px; }
+  .login-err{ color: var(--danger); font-size:12.5px; margin-top:14px; display:none; }
+  .login-loading{ color: var(--text-soft); font-size:12.5px; margin-top:14px; display:none; }
+  .app-hidden{ display:none !important; }
+
   @media (max-width:640px){
     .add-grid{ grid-template-columns: 1fr 1fr; }
     .stat{ min-width: 100%; }
@@ -162,12 +201,32 @@
 </style>
 </head>
 <body>
-<div class="wrap">
+
+<!-- 登入畫面 -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-card">
+    <h1>合作總覽</h1>
+    <p>請先登入才能使用您的案件資料</p>
+    <button class="btn-google" id="btnGoogleLogin">
+      <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34 5.1 29.3 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21 21-9.4 21-21c0-1.4-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.8 1.1 8 3l6-6C34 5.1 29.3 3 24 3 16.3 3 9.7 7.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 45c5.2 0 9.9-2 13.4-5.2l-6.2-5.2c-2 1.4-4.6 2.4-7.2 2.4-5.2 0-9.6-3.4-11.3-8.1l-6.5 5C9.6 40.6 16.2 45 24 45z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.6l6.2 5.2C40.9 36 44 30.7 44 24c0-1.4-.1-2.7-.4-3.5z"/></svg>
+      使用 Google 登入
+    </button>
+    <p class="login-err" id="loginErr">登入失敗，請再試一次</p>
+    <p class="login-loading" id="loginLoading">登入中…</p>
+  </div>
+</div>
+
+<div class="wrap app-hidden" id="appRoot">
 
   <div class="header">
     <div>
       <h1>合作總覽</h1>
       <p>進度追蹤 (Realtime Database)</p>
+    </div>
+    <div class="user-bar">
+      <img class="user-avatar" id="userAvatar" src="" alt="">
+      <span class="user-name" id="userName"></span>
+      <button class="btn-logout" id="btnLogout">登出</button>
     </div>
   </div>
 
@@ -299,12 +358,15 @@
 
 </div>
 
-<!-- 載入 Realtime Database SDK -->
+<!-- 載入 Firebase SDK -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { 
-    getDatabase, ref, set, get, onValue, remove, update 
+  import {
+    getDatabase, ref, set, get, onValue, off, remove, update
   } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+  import {
+    getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "BUILD_TIME_FIREBASE_API_KEY",
@@ -319,6 +381,8 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
+  const auth = getAuth(app);
+  const googleProvider = new GoogleAuthProvider();
 
   let cases = [];
   let currentPlat = 'all';
@@ -327,6 +391,8 @@
   let selectedTypes = [];
   let selectedModes = [];
   let editingId = null;
+  let currentUser = null;
+  let casesRef = null;
 
   const STAGES = [
     { key:'洽談中', dot: 'var(--sky)' },
@@ -337,8 +403,64 @@
     { key:'已收款', dot: 'var(--mint)' }
   ];
 
-  function initRealtimeSync() {
-    onValue(ref(db, 'cases'), (snapshot) => {
+  // ---------- 登入系統 ----------
+
+  function showLogin(){
+    document.getElementById('loginOverlay').classList.remove('app-hidden');
+    document.getElementById('appRoot').classList.add('app-hidden');
+  }
+
+  function showApp(user){
+    document.getElementById('loginOverlay').classList.add('app-hidden');
+    document.getElementById('appRoot').classList.remove('app-hidden');
+    document.getElementById('userAvatar').src = user.photoURL || '';
+    document.getElementById('userName').textContent = user.displayName || user.email || '';
+  }
+
+  document.getElementById('btnGoogleLogin').addEventListener('click', async () => {
+    const errEl = document.getElementById('loginErr');
+    const loadingEl = document.getElementById('loginLoading');
+    errEl.style.display = 'none';
+    loadingEl.style.display = 'block';
+    try{
+      await signInWithPopup(auth, googleProvider);
+    }catch(e){
+      console.error('登入失敗', e);
+      errEl.textContent = '登入失敗，請再試一次';
+      errEl.style.display = 'block';
+    }finally{
+      loadingEl.style.display = 'none';
+    }
+  });
+
+  document.getElementById('btnLogout').addEventListener('click', async () => {
+    await signOut(auth);
+  });
+
+  onAuthStateChanged(auth, (user) => {
+    // 使用者狀態改變時，先移除舊的即時監聽，避免資料混雜或殘留權限錯誤
+    if(casesRef){
+      off(casesRef);
+      casesRef = null;
+    }
+    if(user){
+      currentUser = user;
+      showApp(user);
+      cases = [];
+      resetForm();
+      initRealtimeSync(user.uid);
+    }else{
+      currentUser = null;
+      cases = [];
+      showLogin();
+    }
+  });
+
+  // ---------- 資料同步（依使用者 UID 區隔） ----------
+
+  function initRealtimeSync(uid) {
+    casesRef = ref(db, `users/${uid}/cases`);
+    onValue(casesRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
         cases = Object.keys(data).map(key => ({ id: key, ...data[key] }));
@@ -363,14 +485,14 @@
     return new Date().getFullYear();
   }
 
-  // 修改：獨立維護各個年份的計數器，切換年份時編號持續累加不歸零
+  // 各使用者獨立維護各年份的編號計數器，切換年份時編號持續累加不歸零
   async function generateCaseNo(dates){
     const targetYear = getTargetYear(dates);
-    const counterRef = ref(db, `meta/counters/${targetYear}`);
-    
+    const counterRef = ref(db, `users/${currentUser.uid}/meta/counters/${targetYear}`);
+
     const snapshot = await get(counterRef);
     let currentCounter = snapshot.exists() ? snapshot.val() : 0;
-    
+
     currentCounter += 1;
     await set(counterRef, currentCounter);
 
@@ -421,6 +543,7 @@
   }
 
   async function submitCase(){
+    if(!currentUser) return;
     const brandEl = document.getElementById('inputBrand');
     const brand = brandEl.value.trim();
     const errEl = document.getElementById('addErr');
@@ -463,7 +586,7 @@
     const modes = [...selectedModes];
     const product = document.getElementById('inputProduct').value.trim();
     const fee = Number(document.getElementById('inputFee').value) || 0;
-    
+
     const dates = {
       negotiate: document.getElementById('inputDateNegotiate').value || null,
       contract: document.getElementById('inputDateContract').value || null,
@@ -474,14 +597,14 @@
     };
 
     if(editingId){
-      await update(ref(db, 'cases/' + editingId), {
+      await update(ref(db, `users/${currentUser.uid}/cases/` + editingId), {
         brand, platforms, types, modes, product, fee, dates, hasNonCompete, nonCompeteDate,
         authTypes, authDate, commissionRate
       });
     }else{
       const newId = uid();
       const caseNo = await generateCaseNo(dates);
-      await set(ref(db, 'cases/' + newId), {
+      await set(ref(db, `users/${currentUser.uid}/cases/` + newId), {
         caseNo,
         brand, platforms, types, modes, product, fee, dates, hasNonCompete, nonCompeteDate,
         authTypes, authDate, commissionRate,
@@ -551,16 +674,19 @@
   }
 
   async function updateStage(id, newStage){
-    await update(ref(db, 'cases/' + id), { stage: newStage });
+    if(!currentUser) return;
+    await update(ref(db, `users/${currentUser.uid}/cases/` + id), { stage: newStage });
   }
 
   async function updateSalesAmount(id, val){
+    if(!currentUser) return;
     const salesAmount = val === '' ? null : Number(val);
-    await update(ref(db, 'cases/' + id), { salesAmount });
+    await update(ref(db, `users/${currentUser.uid}/cases/` + id), { salesAmount });
   }
 
   async function deleteCase(id){
-    await remove(ref(db, 'cases/' + id));
+    if(!currentUser) return;
+    await remove(ref(db, `users/${currentUser.uid}/cases/` + id));
     if(editingId === id) resetForm();
   }
 
@@ -610,12 +736,12 @@
 
     const sortedYears = Array.from(yearSet).sort((a,b) => b - a);
     const container = document.getElementById('yearFilters');
-    
+
     let html = `<button class="tab ${currentYear === 'all' ? 'active' : ''}" data-year="all">全部年份</button>`;
     sortedYears.forEach(y => {
       html += `<button class="tab ${String(currentYear) === String(y) ? 'active' : ''}" data-year="${y}">${y} 年</button>`;
     });
-    
+
     container.innerHTML = html;
   }
 
@@ -648,7 +774,7 @@
             const optionsHtml = STAGES.map(s =>
               '<option value="' + s.key + '"' + (s.key === c.stage ? ' selected' : '') + '>' + s.key + '</option>'
             ).join('');
-            
+
             const d = c.dates || {};
             let collabStr = null;
             if(d.collabStart || d.collabEnd){
@@ -799,8 +925,6 @@
     currentPlat = btn.dataset.plat;
     render();
   });
-
-  initRealtimeSync();
 </script>
 </body>
 </html>
