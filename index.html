@@ -208,8 +208,54 @@
     font-family:'Inter'; text-decoration:underline; padding:0;
   }
   .login-err{ color: var(--danger); font-size:12.5px; margin-top:14px; display:none; }
+  .login-ok{ color: var(--mint); font-size:12.5px; margin-top:14px; display:none; }
   .login-loading{ color: var(--text-soft); font-size:12.5px; margin-top:14px; display:none; }
   .app-hidden{ display:none !important; }
+  .forgot-row{ text-align:center; margin-top:10px; }
+  .forgot-row button{
+    background:none; border:none; color: var(--text-soft); cursor:pointer; font-size:12px;
+    font-family:'Inter'; text-decoration:underline; padding:0;
+  }
+
+  .btn-account{
+    background:transparent; border:1px solid var(--line); color: var(--text-soft);
+    border-radius:7px; padding:7px 12px; font-size:12.5px; cursor:pointer; font-family:'Inter';
+  }
+  .btn-account:hover{ border-color: var(--accent); color: var(--text); }
+
+  .modal-overlay{
+    position:fixed; inset:0; background: rgba(0,0,0,0.55);
+    display:flex; align-items:center; justify-content:center;
+    z-index:200; padding:20px;
+  }
+  .modal-card{
+    background: var(--bg-panel); border:1px solid var(--line); border-radius:16px;
+    padding:28px; max-width:400px; width:100%; max-height:88vh; overflow-y:auto;
+  }
+  .modal-card h2{
+    font-family:'Space Grotesk', 'Noto Sans TC', sans-serif; font-size:20px; margin:0 0 18px;
+  }
+  .modal-section{ margin-bottom:22px; }
+  .modal-section h3{ font-size:13px; margin:0 0 10px; color: var(--text-soft); font-weight:600; }
+  .modal-section .login-form{ gap:8px; }
+  .modal-section .login-err, .modal-section .login-ok{ margin-top:8px; }
+  .modal-close{
+    position:absolute; top:16px; right:18px; background:none; border:none;
+    color: var(--text-soft); font-size:18px; cursor:pointer;
+  }
+  .modal-card{ position:relative; }
+  .danger-zone{
+    border:1px solid rgba(232,93,93,0.4); border-radius:10px; padding:14px;
+    background: rgba(232,93,93,0.06);
+  }
+  .danger-zone h3{ color: var(--danger); }
+  .danger-zone p{ font-size:12px; color: var(--text-soft); margin:0 0 10px; }
+  .btn-danger{
+    background: var(--danger); color:#fff; border:none; border-radius:7px;
+    padding:10px; font-weight:600; font-size:13.5px; cursor:pointer; font-family:'Inter';
+    width:100%; margin-top:4px;
+  }
+  .btn-danger:hover{ background:#C94848; }
 
   @media (max-width:640px){
     .add-grid{ grid-template-columns: 1fr 1fr; }
@@ -229,7 +275,7 @@
         <label for="inputAuthEmail">Email</label>
         <input type="email" id="inputAuthEmail" placeholder="you@example.com" autocomplete="email">
       </div>
-      <div>
+      <div id="passwordFieldWrap">
         <label for="inputAuthPassword">密碼</label>
         <input type="password" id="inputAuthPassword" placeholder="至少 6 個字元" autocomplete="current-password">
       </div>
@@ -238,7 +284,11 @@
     <div class="auth-toggle-row">
       <span id="authToggleHint">還沒有帳號？</span><button class="auth-toggle-link" id="btnAuthToggle">註冊新帳號</button>
     </div>
+    <div class="forgot-row" id="forgotRow">
+      <button id="btnForgotPassword">忘記密碼？</button>
+    </div>
     <p class="login-err" id="loginErr">登入失敗，請再試一次</p>
+    <p class="login-ok" id="loginOk"></p>
     <p class="login-loading" id="loginLoading">處理中…</p>
   </div>
 </div>
@@ -252,6 +302,7 @@
     </div>
     <div class="user-bar">
       <span class="user-name" id="userName"></span>
+      <button class="btn-account" id="btnAccountSettings">帳號設定</button>
       <button class="btn-logout" id="btnLogout">登出</button>
     </div>
   </div>
@@ -384,6 +435,44 @@
 
 </div>
 
+<!-- 帳號設定彈窗 -->
+<div class="modal-overlay app-hidden" id="accountModal">
+  <div class="modal-card">
+    <button class="modal-close" id="btnCloseAccountModal" aria-label="關閉">✕</button>
+    <h2>帳號設定</h2>
+
+    <div class="modal-section">
+      <h3>修改密碼</h3>
+      <div class="login-form">
+        <div>
+          <label for="inputCurrentPassword">目前密碼</label>
+          <input type="password" id="inputCurrentPassword" autocomplete="current-password">
+        </div>
+        <div>
+          <label for="inputNewPassword">新密碼</label>
+          <input type="password" id="inputNewPassword" placeholder="至少 6 個字元" autocomplete="new-password">
+        </div>
+        <button class="btn-auth-primary" id="btnChangePassword">更新密碼</button>
+      </div>
+      <p class="login-err" id="changePwErr"></p>
+      <p class="login-ok" id="changePwOk"></p>
+    </div>
+
+    <div class="modal-section danger-zone">
+      <h3>刪除帳號</h3>
+      <p>刪除後你的帳號和所有案件資料都會被永久移除，無法復原。</p>
+      <div class="login-form">
+        <div>
+          <label for="inputDeleteAccountPassword">輸入密碼以確認</label>
+          <input type="password" id="inputDeleteAccountPassword" autocomplete="current-password">
+        </div>
+        <button class="btn-danger" id="btnDeleteAccount">永久刪除帳號</button>
+      </div>
+      <p class="login-err" id="deleteAccErr"></p>
+    </div>
+  </div>
+</div>
+
 <!-- 載入 Firebase SDK -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -391,7 +480,8 @@
     getDatabase, ref, set, get, onValue, off, remove, update
   } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
   import {
-    getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged
+    getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged,
+    sendPasswordResetEmail, updatePassword, deleteUser, reauthenticateWithCredential, EmailAuthProvider
   } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
   const firebaseConfig = {
@@ -436,6 +526,8 @@
     document.getElementById('inputAuthEmail').value = '';
     document.getElementById('inputAuthPassword').value = '';
     document.getElementById('loginErr').style.display = 'none';
+    document.getElementById('loginOk').style.display = 'none';
+    setResetMode(false);
   }
 
   function showApp(user){
@@ -445,6 +537,7 @@
   }
 
   let isRegisterMode = false;
+  let isResetMode = false;
 
   function authErrorMessage(e){
     const code = e && e.code;
@@ -457,7 +550,8 @@
       case 'auth/wrong-password': return '密碼錯誤';
       case 'auth/invalid-credential': return 'Email 或密碼不正確';
       case 'auth/too-many-requests': return '嘗試次數過多，請稍後再試';
-      default: return isRegisterMode ? '註冊失敗，請再試一次' : '登入失敗，請再試一次';
+      case 'auth/requires-recent-login': return '這個操作需要重新登入驗證身分，請重新輸入密碼';
+      default: return isResetMode ? '寄送失敗，請再試一次' : (isRegisterMode ? '註冊失敗，請再試一次' : '登入失敗，請再試一次');
     }
   }
 
@@ -470,13 +564,32 @@
     document.getElementById('btnAuthToggle').textContent = registerMode ? '已有帳號？改為登入' : '註冊新帳號';
     document.getElementById('authToggleHint').textContent = registerMode ? '' : '還沒有帳號？';
     document.getElementById('loginErr').style.display = 'none';
+    document.getElementById('loginOk').style.display = 'none';
   }
+
+  function setResetMode(resetMode){
+    isResetMode = resetMode;
+    document.getElementById('passwordFieldWrap').style.display = resetMode ? 'none' : 'block';
+    document.getElementById('btnAuthSubmit').textContent = resetMode ? '寄送重設密碼信' : (isRegisterMode ? '註冊' : '登入');
+    document.querySelector('.auth-toggle-row').style.display = resetMode ? 'none' : 'block';
+    document.getElementById('btnForgotPassword').textContent = resetMode ? '返回登入' : '忘記密碼？';
+    document.getElementById('loginSubtitle').textContent = resetMode
+      ? '輸入註冊時使用的 Email，我們會寄送重設密碼連結給你'
+      : (isRegisterMode ? '建立新帳號來管理你的案件資料' : '請先登入才能使用您的案件資料');
+    document.getElementById('loginErr').style.display = 'none';
+    document.getElementById('loginOk').style.display = 'none';
+  }
+
+  document.getElementById('btnForgotPassword').addEventListener('click', () => {
+    setResetMode(!isResetMode);
+  });
 
   document.getElementById('inputAuthPassword').addEventListener('keydown', e => {
     if(e.key === 'Enter') document.getElementById('btnAuthSubmit').click();
   });
 
   document.getElementById('btnAuthToggle').addEventListener('click', () => {
+    if(isResetMode) setResetMode(false);
     setAuthMode(!isRegisterMode);
   });
 
@@ -484,24 +597,31 @@
     const email = document.getElementById('inputAuthEmail').value.trim();
     const password = document.getElementById('inputAuthPassword').value;
     const errEl = document.getElementById('loginErr');
+    const okEl = document.getElementById('loginOk');
     const loadingEl = document.getElementById('loginLoading');
 
-    if(!email || !password){
-      errEl.textContent = '請輸入 Email 和密碼';
+    if(!email || (!isResetMode && !password)){
+      errEl.textContent = isResetMode ? '請輸入 Email' : '請輸入 Email 和密碼';
       errEl.style.display = 'block';
+      okEl.style.display = 'none';
       return;
     }
 
     errEl.style.display = 'none';
+    okEl.style.display = 'none';
     loadingEl.style.display = 'block';
     try{
-      if(isRegisterMode){
+      if(isResetMode){
+        await sendPasswordResetEmail(auth, email);
+        okEl.textContent = '重設密碼信已寄出，請至信箱查收（含垃圾郵件匣）';
+        okEl.style.display = 'block';
+      }else if(isRegisterMode){
         await createUserWithEmailAndPassword(auth, email, password);
       }else{
         await signInWithEmailAndPassword(auth, email, password);
       }
     }catch(e){
-      console.error('登入/註冊失敗', e);
+      console.error('登入/註冊/重設密碼失敗', e);
       errEl.textContent = authErrorMessage(e);
       errEl.style.display = 'block';
     }finally{
@@ -511,6 +631,93 @@
 
   document.getElementById('btnLogout').addEventListener('click', async () => {
     await signOut(auth);
+  });
+
+  // ---------- 帳號設定：修改密碼／刪除帳號 ----------
+
+  function openAccountModal(){
+    document.getElementById('inputCurrentPassword').value = '';
+    document.getElementById('inputNewPassword').value = '';
+    document.getElementById('inputDeleteAccountPassword').value = '';
+    document.getElementById('changePwErr').style.display = 'none';
+    document.getElementById('changePwOk').style.display = 'none';
+    document.getElementById('deleteAccErr').style.display = 'none';
+    document.getElementById('accountModal').classList.remove('app-hidden');
+  }
+
+  function closeAccountModal(){
+    document.getElementById('accountModal').classList.add('app-hidden');
+  }
+
+  document.getElementById('btnAccountSettings').addEventListener('click', openAccountModal);
+  document.getElementById('btnCloseAccountModal').addEventListener('click', closeAccountModal);
+  document.getElementById('accountModal').addEventListener('click', e => {
+    if(e.target.id === 'accountModal') closeAccountModal();
+  });
+
+  async function reauth(currentPassword){
+    const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
+    await reauthenticateWithCredential(currentUser, credential);
+  }
+
+  document.getElementById('btnChangePassword').addEventListener('click', async () => {
+    const currentPassword = document.getElementById('inputCurrentPassword').value;
+    const newPassword = document.getElementById('inputNewPassword').value;
+    const errEl = document.getElementById('changePwErr');
+    const okEl = document.getElementById('changePwOk');
+    errEl.style.display = 'none';
+    okEl.style.display = 'none';
+
+    if(!currentPassword || !newPassword){
+      errEl.textContent = '請輸入目前密碼和新密碼';
+      errEl.style.display = 'block';
+      return;
+    }
+    if(newPassword.length < 6){
+      errEl.textContent = '新密碼至少需要 6 個字元';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    try{
+      await reauth(currentPassword);
+      await updatePassword(currentUser, newPassword);
+      okEl.textContent = '密碼已更新';
+      okEl.style.display = 'block';
+      document.getElementById('inputCurrentPassword').value = '';
+      document.getElementById('inputNewPassword').value = '';
+    }catch(e){
+      console.error('修改密碼失敗', e);
+      errEl.textContent = authErrorMessage(e);
+      errEl.style.display = 'block';
+    }
+  });
+
+  document.getElementById('btnDeleteAccount').addEventListener('click', async () => {
+    const password = document.getElementById('inputDeleteAccountPassword').value;
+    const errEl = document.getElementById('deleteAccErr');
+    errEl.style.display = 'none';
+
+    if(!password){
+      errEl.textContent = '請輸入密碼以確認';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    const confirmed = window.confirm('確定要永久刪除帳號和所有案件資料嗎？這個動作無法復原。');
+    if(!confirmed) return;
+
+    try{
+      await reauth(password);
+      const uidToDelete = currentUser.uid;
+      await remove(ref(db, `users/${uidToDelete}`));
+      await deleteUser(currentUser);
+      closeAccountModal();
+    }catch(e){
+      console.error('刪除帳號失敗', e);
+      errEl.textContent = authErrorMessage(e);
+      errEl.style.display = 'block';
+    }
   });
 
   onAuthStateChanged(auth, (user) => {
@@ -528,6 +735,7 @@
     }else{
       currentUser = null;
       cases = [];
+      closeAccountModal();
       showLogin();
     }
   });
