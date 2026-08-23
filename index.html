@@ -550,7 +550,6 @@
   const STAGES = [
     { key:'製作中', dot: 'var(--butter)' },
     { key:'待審核', dot: 'var(--pink)' },
-    { key:'已上稿', dot: 'var(--accent)' },
     { key:'待請款', dot: 'var(--danger)' },
     { key:'已收款', dot: 'var(--mint)' }
   ];
@@ -1024,7 +1023,7 @@
 
   function isOverdue(c){
     const draft = c.dates && c.dates.draft;
-    if(!draft || c.stage === '已上稿' || c.stage === '待請款' || c.stage === '已收款') return false;
+    if(!draft || c.stage !== '製作中') return false;
     const today = new Date(); today.setHours(0,0,0,0);
     return new Date(draft) < today;
   }
@@ -1055,7 +1054,7 @@
     const upcoming = allCases
       .filter(c => {
         if(!c.dates || !c.dates.draft) return false;
-        if(['已上稿','待請款','已收款'].includes(c.stage)) return false;
+        if(c.stage !== '製作中') return false;
         const days = daysUntil(c.dates.draft);
         return days >= 0 && days <= 7;
       })
@@ -1161,7 +1160,7 @@
             const effectiveFee = getEffectiveFee(c);
 
             let deadlineBadgeHtml = '';
-            if(d.draft && !['已上稿','待請款','已收款'].includes(c.stage)){
+            if(d.draft && c.stage === '製作中'){
               const daysLeft = daysUntil(d.draft);
               if(daysLeft >= 0 && daysLeft <= 7){
                 const label = daysLeft === 0 ? '今天截止' : daysLeft + ' 天後截止';
