@@ -1846,6 +1846,16 @@
     document.getElementById('inputDateCollabEnd').value = d.collabEnd || '';
     document.getElementById('inputPaidDate').value = c.paidDate || '';
 
+    // 先載入合作模式，再計算競業／授權截止日。
+    // 否則 syncAuthorizationDate() 可能在 selectedModes 尚未載入時執行，
+    // 導致團購／分潤案件抓不到「合作結束日期」，授權截止日被清空，
+    // 任務卡片因此錯誤顯示「無期限」。
+    selectedModes = [...(c.modes || [])];
+    document.querySelectorAll('#modeToggles .mode-chip').forEach(b => {
+      b.classList.toggle('selected', selectedModes.includes(b.dataset.mode));
+    });
+    toggleCollabDateUI();
+
     document.getElementById('inputHasNonCompete').checked = !!c.hasNonCompete;
     document.getElementById('inputNonCompetePeriod').value = c.nonCompetePeriod || '';
     document.getElementById('inputNonCompeteDate').value = c.nonCompeteDate || '';
@@ -1868,13 +1878,6 @@
     document.querySelectorAll('#typeToggles .type-chip').forEach(b => {
       b.classList.toggle('selected', selectedTypes.includes(b.dataset.type));
     });
-
-    selectedModes = [...(c.modes || [])];
-    document.querySelectorAll('#modeToggles .mode-chip').forEach(b => {
-      b.classList.toggle('selected', selectedModes.includes(b.dataset.mode));
-    });
-
-    toggleCollabDateUI();
 
     document.getElementById('inputCommissionRate').value = c.commissionRate != null ? c.commissionRate : '';
     const needsRate = selectedModes.includes('團購') || selectedModes.includes('分潤');
@@ -2832,7 +2835,16 @@
             nonCompeteDate: normalizeExcelDate(row['競業截止日']),
             authTypes: row['授權類型'] ? String(row['授權類型']).split(',').map(s => s.trim()) : [],
             authPeriod: ({'1個月':'1m','3個月':'3m','6個月':'6m','12個月':'12m','1 個月':'1m','3 個月':'3m','6 個月':'6m','12 個月':'12m','無期限':'unlimited','自訂截止日':'custom'}[String(row['授權期間'] || '').trim()] || row['授權期間'] || null),
-            authDate: normalizeExcelDate(row['授權截止日']),
+            authDate: (() => {
+              const period = ({'1個月':'1m','3個月':'3m','6個月':'6m','12個月':'12m','1 個月':'1m','3 個月':'3m','6 個月':'6m','12 個月':'12m','無期限':'unlimited','自訂截止日':'custom'}[String(row['授權期間'] || '').trim()] || row['授權期間'] || null);
+              const importedDate = normalizeExcelDate(row['授權截止日']);
+              // Excel 匯入時若有授權期間但「授權截止日」空白，依合作模式與合作日期重新計算。
+              if (period === 'custom' || period === 'unlimited') return importedDate || null;
+              const base = (importModes.includes('團購') || importModes.includes('分潤')) ? dates.collabEnd : dates.collab;
+              const months = {'1m':1,'3m':3,'6m':6,'12m':12}[period];
+              if (base && months) return addMonthsToDate(base, months) || importedDate || null;
+              return importedDate || null;
+            })(),
             authorizationExtensions: extensionMap[String(row['案件編號'] || caseNo).trim()] || [],
             paidDate: importPaidDate,
             stage: row['階段'] || '製作中',
