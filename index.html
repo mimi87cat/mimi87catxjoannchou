@@ -99,6 +99,9 @@
   .date-fields{ grid-column: 1 / -1; display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:8px; }
   .date-field label{ display:block; font-size:11px; color: var(--text-soft); margin-bottom:3px; }
   .date-field input{ width:100%; }
+  /* 新增案件時隱藏實際發生日期；編輯案件時由 JS 加上 .show 顯示 */
+  .post-create-date{ display:none; }
+  .post-create-date.show{ display:block; }
   .noncompete-row{ grid-column: 1 / -1; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
   .checkbox-field{ display:flex; align-items:center; gap:7px; font-size:13px; color: var(--text); cursor:pointer; user-select:none; }
   .checkbox-field input{ width:16px; height:16px; accent-color: var(--accent); cursor:pointer; }
@@ -132,6 +135,7 @@
 
   .note{
     position:relative; border-radius:4px; padding:14px 12px 12px; margin-bottom:16px;
+    min-width:0; overflow:hidden;
     color:#2B2620; box-shadow: 0 3px 8px rgba(0,0,0,0.25); font-size:13px; cursor: pointer;
   }
   .note::before{
@@ -155,12 +159,27 @@
   .sales-input-wrap{
     background: rgba(255,255,255,0.4); border-radius: 6px; padding: 6px 8px; margin: 8px 0;
   }
-  .sales-input-wrap label{ font-size:11px; display:block; margin-bottom:3px; opacity:0.8; font-weight:600; }
+  .sales-input-wrap label{ font-size:10px; display:block; margin-bottom:3px; color:#4A463F; opacity:1; font-weight:700; }
   .sales-input-wrap input{
     width: 100%; border: 1px solid rgba(0,0,0,0.2); border-radius: 4px; padding: 4px 6px;
-    font-size: 12px; font-family: 'IBM Plex Mono', monospace; background: rgba(255,255,255,0.8);
+    font-size: 10px; font-family: 'IBM Plex Mono', monospace; background: #fffaf0; color:#2F2B26;
   }
 
+  .task-date-inputs{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px;margin:8px 0 4px;padding:7px 7px;background:rgba(255,255,255,.38);border:1px solid var(--line);border-radius:8px;min-width:0;max-width:100%;overflow:hidden;}
+  .task-date-input{display:flex;flex-direction:column;gap:3px;min-width:0;width:100%;overflow:hidden;}
+  .paid-date-inputs{grid-template-columns:minmax(0,1fr);}
+  .task-date-input label{font-size:10px;color:#4A463F;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .task-date-input input{display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;border:1px solid #B8B2A8;border-radius:6px;background:#fffaf0;color:#2F2B26;padding:5px 4px;font-size:10px;font-family:'IBM Plex Mono',monospace;overflow:hidden;}
+  
+  .task-date-input input::-webkit-datetime-edit-text,
+  .task-date-input input::-webkit-datetime-edit-month-field,
+  .task-date-input input::-webkit-datetime-edit-day-field,
+  .task-date-input input::-webkit-datetime-edit-year-field{color:#2F2B26;}
+  .task-date-input input::-webkit-datetime-edit{min-width:0;}
+  .task-date-input input::-webkit-calendar-picker-indicator{margin:0;padding:0;}
+  .task-date-input input:focus{outline:2px solid rgba(79,111,82,.18);border-color:#4F6F52;}
+  .note-prev-btn{background:#fffaf0;color:#5b625d;border:1px solid #b9beb8;border-radius:7px;padding:7px 9px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;}
+  .note-prev-btn:hover{background:#f0eee5;color:#39413b;border-color:#8f9890;}
   .note-actions{ display:flex; gap:6px; margin-top:10px; align-items:stretch; }
   .note-next-btn{
     flex:1; border:1px solid transparent; border-radius:7px;
@@ -243,6 +262,8 @@
   }
   .deadline-item .days.today{ color: var(--danger); }
   .note-deadline-badge{
+  .note-deadline-badge.overdue{color:#B23A2E;border-color:rgba(178,58,46,.28);background:rgba(178,58,46,.08);}
+  .deadline-item .days.overdue{color:#B23A2E;font-weight:700;}
     display:inline-block; font-size:10.5px; font-family:'IBM Plex Mono', monospace;
     font-weight:600; padding:2px 7px; border-radius:999px; margin-bottom:6px;
     background: rgba(255,216,115,0.35); color:#5A3D00;
@@ -726,7 +747,7 @@
   <div id="boardView">
 
   <div class="deadline-banner" id="deadlineBanner">
-    <h3>⏰ 即將到期的初稿</h3>
+    <h3>⏰ 即將到期的初稿／腳本</h3>
     <div class="deadline-list" id="deadlineList"></div>
   </div>
 
@@ -751,6 +772,20 @@
       <input type="text" id="inputBrand" placeholder="品牌／案主名稱" maxlength="40">
       <input type="text" id="inputProduct" placeholder="產品名稱" maxlength="40">
       <input type="number" id="inputFee" placeholder="保底/固定金額 NT$" min="0">
+      <div class="field-label">合作模式</div>
+      <div class="plat-toggles" id="modeToggles">
+        <button type="button" class="mode-chip" data-mode="圖文">圖文</button>
+        <button type="button" class="mode-chip" data-mode="限時動態">限時動態</button>
+        <button type="button" class="mode-chip" data-mode="短影片">短影片</button>
+        <button type="button" class="mode-chip" data-mode="團購">團購</button>
+        <button type="button" class="mode-chip" data-mode="串文">串文</button>
+        <button type="button" class="mode-chip" data-mode="分潤">分潤</button>
+      </div>
+      <div class="noncompete-date" id="commissionRateWrap">
+        <label for="inputCommissionRate">分潤／團購</label>
+        <input type="number" id="inputCommissionRate" min="0" max="100" step="0.1" style="width:70px;">
+        <span>％</span>
+      </div>
       <div class="field-label">重要日期</div>
       <div class="date-fields">
         <div class="date-field">
@@ -758,8 +793,20 @@
           <input type="date" id="inputDateContract">
         </div>
         <div class="date-field">
+          <label for="inputDateScript">腳本繳交截止日</label>
+          <input type="date" id="inputDateScript">
+        </div>
+        <div class="date-field post-create-date" id="scriptProvidedDateWrap">
+          <label for="inputDateScriptProvided">腳本提供日期</label>
+          <input type="date" id="inputDateScriptProvided">
+        </div>
+        <div class="date-field">
           <label for="inputDateDraft">初稿繳交截止日</label>
           <input type="date" id="inputDateDraft">
+        </div>
+        <div class="date-field post-create-date" id="draftProvidedDateWrap">
+          <label for="inputDateDraftProvided">初稿提供日期</label>
+          <input type="date" id="inputDateDraftProvided">
         </div>
         <div class="date-field" id="singleCollabDateWrap">
           <label for="inputDateCollab">合作日期</label>
@@ -773,7 +820,7 @@
           <label for="inputDateCollabEnd">合作結束日期</label>
           <input type="date" id="inputDateCollabEnd">
         </div>
-        <div class="date-field">
+        <div class="date-field post-create-date" id="paidDateWrap">
           <label for="inputPaidDate">收款日期</label>
           <input type="date" id="inputPaidDate">
         </div>
@@ -808,20 +855,6 @@
         <button type="button" class="type-chip" data-type="電器">電器</button>
         <button type="button" class="type-chip" data-type="零食">零食</button>
         <button type="button" class="type-chip" data-type="其他">其他</button>
-      </div>
-      <div class="field-label">合作模式</div>
-      <div class="plat-toggles" id="modeToggles">
-        <button type="button" class="mode-chip" data-mode="圖文">圖文</button>
-        <button type="button" class="mode-chip" data-mode="限時動態">限時動態</button>
-        <button type="button" class="mode-chip" data-mode="短影片">短影片</button>
-        <button type="button" class="mode-chip" data-mode="團購">團購</button>
-        <button type="button" class="mode-chip" data-mode="串文">串文</button>
-        <button type="button" class="mode-chip" data-mode="分潤">分潤</button>
-      </div>
-      <div class="noncompete-date" id="commissionRateWrap">
-        <label for="inputCommissionRate">分潤／團購</label>
-        <input type="number" id="inputCommissionRate" min="0" max="100" step="0.1" style="width:70px;">
-        <span>％</span>
       </div>
       <div class="field-label">合作平台</div>
       <div class="plat-toggles" id="platToggles">
@@ -1398,6 +1431,7 @@
     const collabDate = d.collab || d.collabStart;
     if (collabDate) return new Date(collabDate).getFullYear();
     if (d.draft) return new Date(d.draft).getFullYear();
+    if (d.script) return new Date(d.script).getFullYear();
     if (d.contract) return new Date(d.contract).getFullYear();
     if (d.negotiate) return new Date(d.negotiate).getFullYear();
     return new Date().getFullYear();
@@ -1423,12 +1457,18 @@
     document.getElementById('addTitle').textContent = '新增案件';
     document.getElementById('btnAdd').textContent = '加入合作總覽';
     document.getElementById('btnCancelEdit').style.display = 'none';
+    document.getElementById('scriptProvidedDateWrap').classList.remove('show');
+    document.getElementById('draftProvidedDateWrap').classList.remove('show');
+    document.getElementById('paidDateWrap').classList.remove('show');
 
     document.getElementById('inputBrand').value = '';
     document.getElementById('inputProduct').value = '';
     document.getElementById('inputFee').value = '';
     document.getElementById('inputDateContract').value = '';
+    document.getElementById('inputDateScript').value = '';
+    document.getElementById('inputDateScriptProvided').value = '';
     document.getElementById('inputDateDraft').value = '';
+    document.getElementById('inputDateDraftProvided').value = '';
     document.getElementById('inputDateCollab').value = '';
     document.getElementById('inputDateCollabStart').value = '';
     document.getElementById('inputDateCollabEnd').value = '';
@@ -1443,11 +1483,14 @@
     document.getElementById('commissionRateWrap').classList.remove('show');
     document.getElementById('addErr').style.display = 'none';
 
-    selectedPlatforms = [];
+    // 新增案件時預設選取 Instagram；編輯既有案件時會由 editCase() 載入實際平台資料覆蓋此預設。
+    selectedPlatforms = ['IG'];
     selectedTypes = [];
     selectedModes = [];
     toggleCollabDateUI();
-    document.querySelectorAll('#platToggles .plat-chip').forEach(b => b.classList.remove('selected'));
+    document.querySelectorAll('#platToggles .plat-chip').forEach(b => {
+      b.classList.toggle('selected', b.dataset.plat === 'IG');
+    });
     document.querySelectorAll('#typeToggles .type-chip').forEach(b => b.classList.remove('selected'));
     document.querySelectorAll('#modeToggles .mode-chip').forEach(b => b.classList.remove('selected'));
   }
@@ -1506,7 +1549,10 @@
 
     const dates = {
       contract: document.getElementById('inputDateContract').value || null,
+      script: document.getElementById('inputDateScript').value || null,
+      scriptProvided: document.getElementById('inputDateScriptProvided').value || null,
       draft: document.getElementById('inputDateDraft').value || null,
+      draftProvided: document.getElementById('inputDateDraftProvided').value || null,
       collab: !needsRate ? (document.getElementById('inputDateCollab').value || null) : null,
       collabStart: needsRate ? (document.getElementById('inputDateCollabStart').value || null) : null,
       collabEnd: needsRate ? (document.getElementById('inputDateCollabEnd').value || null) : null
@@ -1542,6 +1588,9 @@
     document.getElementById('addTitle').textContent = '編輯案件 (' + (c.caseNo || '') + ')';
     document.getElementById('btnAdd').textContent = '儲存修改';
     document.getElementById('btnCancelEdit').style.display = 'inline-block';
+    document.getElementById('scriptProvidedDateWrap').classList.add('show');
+    document.getElementById('draftProvidedDateWrap').classList.add('show');
+    document.getElementById('paidDateWrap').classList.add('show');
 
     document.getElementById('inputBrand').value = c.brand || '';
     document.getElementById('inputProduct').value = c.product || '';
@@ -1549,7 +1598,10 @@
 
     const d = c.dates || {};
     document.getElementById('inputDateContract').value = d.contract || '';
+    document.getElementById('inputDateScript').value = d.script || '';
+    document.getElementById('inputDateScriptProvided').value = d.scriptProvided || '';
     document.getElementById('inputDateDraft').value = d.draft || '';
+    document.getElementById('inputDateDraftProvided').value = d.draftProvided || '';
     document.getElementById('inputDateCollab').value = d.collab || '';
     document.getElementById('inputDateCollabStart').value = d.collabStart || '';
     document.getElementById('inputDateCollabEnd').value = d.collabEnd || '';
@@ -1601,6 +1653,32 @@
     }
 
     await update(ref(db, `users/${currentUser.uid}/cases/` + id), updates);
+  }
+
+  async function updateTaskDates(id, field, val){
+    if(!currentUser) return;
+    const value = val || null;
+    const updates = {};
+    updates[`dates/${field}`] = value;
+    await update(ref(db, `users/${currentUser.uid}/cases/` + id), updates);
+  }
+
+  // 案件流程的「上一階段」操作。
+  async function previousStage(id){
+    if(!currentUser) return;
+    const c = cases.find(x => x.id === id);
+    if(!c) return;
+    const prevStageMap = {
+      '待審核': '製作中',
+      '待請款': '待審核'
+    };
+    const prevStage = prevStageMap[c.stage];
+    if(!prevStage) return;
+    const confirmed = window.confirm(
+      '確定要將「' + (c.brand || '此案件') + '」退回「' + prevStage + '」嗎？'
+    );
+    if(!confirmed) return;
+    await updateStage(id, prevStage);
   }
 
   // 案件流程的「下一步」操作：不再使用下拉式選單。
@@ -1668,6 +1746,8 @@
   window.openClosedCaseForEdit = openClosedCaseForEdit;
   window.updateStage = updateStage;
   window.advanceStage = advanceStage;
+  window.previousStage = previousStage;
+  window.updateTaskDates = updateTaskDates;
   window.updateSalesAmount = updateSalesAmount;
   window.updatePaidDate = updatePaidDate;
   window.deleteCase = deleteCase;
@@ -1686,6 +1766,13 @@
     if(!draft || c.stage !== '製作中') return false;
     const today = new Date(); today.setHours(0,0,0,0);
     return new Date(draft) < today;
+  }
+
+  function isScriptOverdue(c){
+    const script = c.dates && c.dates.script;
+    if(!script || c.stage !== '製作中') return false;
+    const today = new Date(); today.setHours(0,0,0,0);
+    return new Date(script) < today;
   }
 
   function fmtDue(due){
@@ -1711,15 +1798,27 @@
   }
 
   function renderDeadlineBanner(allCases){
-    const upcoming = allCases
-      .filter(c => {
-        if(!c.dates || !c.dates.draft) return false;
-        if(c.stage !== '製作中') return false;
+    const upcoming = [];
+
+    allCases.forEach(c => {
+      if(!c.dates || c.stage !== '製作中') return;
+
+      if(c.dates.draft){
         const days = daysUntil(c.dates.draft);
-        return days >= 0 && days <= 7;
-      })
-      .map(c => ({ c, days: daysUntil(c.dates.draft) }))
-      .sort((a,b) => a.days - b.days);
+        if(days <= 7){
+          upcoming.push({ c, days, type: '初稿' });
+        }
+      }
+
+      if(c.dates.script){
+        const days = daysUntil(c.dates.script);
+        if(days <= 7){
+          upcoming.push({ c, days, type: '腳本' });
+        }
+      }
+    });
+
+    upcoming.sort((a,b) => a.days - b.days);
 
     const banner = document.getElementById('deadlineBanner');
     const list = document.getElementById('deadlineList');
@@ -1731,11 +1830,15 @@
     }
 
     banner.classList.add('show');
-    list.innerHTML = upcoming.map(({ c, days }) => {
-      const label = days === 0 ? '今天截止' : days + ' 天後截止';
+    list.innerHTML = upcoming.map(({ c, days, type }) => {
+      const overdue = days < 0;
+      const today = days === 0;
+      const label = overdue
+        ? '已逾期 ' + Math.abs(days) + ' 天'
+        : (today ? '今天截止' : days + ' 天後截止');
       return '<div class="deadline-item">'
-        + '<span class="name">' + (c.caseNo ? c.caseNo + ' · ' : '') + escapeHtml(c.brand) + '</span>'
-        + '<span class="days' + (days === 0 ? ' today' : '') + '">' + label + '</span>'
+        + '<span class="name">' + (c.caseNo ? c.caseNo + ' · ' : '') + escapeHtml(c.brand) + ' · ' + type + '</span>'
+        + '<span class="days' + (overdue ? ' overdue' : (today ? ' today' : '')) + '">' + label + '</span>'
         + '</div>';
     }).join('');
   }
@@ -1927,7 +2030,10 @@
 
             const dateChips = [
               d.contract ? '簽 ' + fmtDue(d.contract) : null,
-              d.draft ? '稿 ' + fmtDue(d.draft) : null,
+              d.script ? '腳本截止 ' + fmtDue(d.script) : null,
+              d.scriptProvided ? '腳本提供 ' + fmtDue(d.scriptProvided) : null,
+              d.draft ? '初稿截止 ' + fmtDue(d.draft) : null,
+              d.draftProvided ? '初稿提供 ' + fmtDue(d.draftProvided) : null,
               collabStr
             ].filter(Boolean).join(' ');
 
@@ -1936,11 +2042,24 @@
             const effectiveFee = getEffectiveFee(c);
 
             let deadlineBadgeHtml = '';
-            if(d.draft && c.stage === '製作中'){
-              const daysLeft = daysUntil(d.draft);
-              if(daysLeft >= 0 && daysLeft <= 7){
-                const label = daysLeft === 0 ? '今天截止' : daysLeft + ' 天後截止';
-                deadlineBadgeHtml = '<span class="note-deadline-badge' + (daysLeft === 0 ? ' today' : '') + '">⏰ ' + label + '</span><br>';
+            if(c.stage === '製作中'){
+              const badges = [];
+              if(d.draft){
+                const daysLeft = daysUntil(d.draft);
+                if(daysLeft <= 7){
+                  const label = daysLeft < 0 ? '已逾期 ' + Math.abs(daysLeft) + ' 天' : (daysLeft === 0 ? '今天截止' : daysLeft + ' 天後截止');
+                  badges.push('初稿 ' + label);
+                }
+              }
+              if(d.script){
+                const daysLeft = daysUntil(d.script);
+                if(daysLeft <= 7){
+                  const label = daysLeft < 0 ? '已逾期 ' + Math.abs(daysLeft) + ' 天' : (daysLeft === 0 ? '今天截止' : daysLeft + ' 天後截止');
+                  badges.push('腳本 ' + label);
+                }
+              }
+              if(badges.length){
+                deadlineBadgeHtml = badges.map(label => '<span class="note-deadline-badge' + (label.includes('已逾期') ? ' overdue' : (label.includes('今天截止') ? ' today' : '')) + '">⏰ ' + label + '</span>').join('<br>') + '<br>';
               }
             }
 
@@ -1954,9 +2073,23 @@
 
             let paidDateInputHtml = '';
             if(c.stage === '待請款'){
-              paidDateInputHtml = '<div class="sales-input-wrap">'
-                + '<label>收款日期</label>'
+              paidDateInputHtml = '<div class="task-date-inputs paid-date-inputs">'
+                + '<div class="task-date-input"><label>收款日期</label>'
                 + '<input type="date" value="' + (c.paidDate || '') + '" onchange="updatePaidDate(\'' + c.id + '\', this.value)">'
+                + '</div>'
+                + '</div>';
+            }
+
+            let taskDateInputHtml = '';
+            if(c.stage === '製作中'){
+              taskDateInputHtml =
+                '<div class="task-date-inputs">'
+                + '<div class="task-date-input"><label>腳本提供日期</label>'
+                + '<input type="date" value="' + ((c.dates && c.dates.scriptProvided) || '') + '" onchange="updateTaskDates(\'' + c.id + '\', \'scriptProvided\', this.value)">'
+                + '</div>'
+                + '<div class="task-date-input"><label>初稿提供日期</label>'
+                + '<input type="date" value="' + ((c.dates && c.dates.draftProvided) || '') + '" onchange="updateTaskDates(\'' + c.id + '\', \'draftProvided\', this.value)">'
+                + '</div>'
                 + '</div>';
             }
 
@@ -1976,7 +2109,9 @@
               + (dateChips ? '<div class="note-dates">' + dateChips + '</div>' : '')
               + (c.hasNonCompete ? '<div class="note-dates">競業至 ' + fmtDue(c.nonCompeteDate) + '</div>' : '')
               + (c.authTypes && c.authTypes.length ? '<div class="note-dates">' + c.authTypes.join('／') + '授權至 ' + fmtDue(c.authDate) + '</div>' : '')
+              + taskDateInputHtml
               + '<div class="note-actions">'
+              + (c.stage !== '製作中' ? '<button class="note-prev-btn" onclick="event.stopPropagation(); previousStage(\'' + c.id + '\')">← 回上一階段</button>' : '')
               + '<button class="note-next-btn ' + (c.stage === '製作中' ? 'next-review' : c.stage === '待審核' ? 'next-billing' : 'next-paid') + '" onclick="event.stopPropagation(); advanceStage(\'' + c.id + '\')">'
               + (c.stage === '製作中' ? '送審核 →' : c.stage === '待審核' ? '送請款 →' : '✓ 標記已收款')
               + '</button>'
@@ -2152,7 +2287,10 @@
         '分潤/團購比例(%)': c.commissionRate ?? '',
         '總銷售金額': c.salesAmount ?? '',
         '簽約日期': d.contract || '',
+        '腳本截止日': d.script || '',
+        '腳本提供日期': d.scriptProvided || '',
         '初稿截止日': d.draft || '',
+        '初稿提供日期': d.draftProvided || '',
         '合作日期': d.collab || '',
         '合作開始日': d.collabStart || '',
         '合作結束日': d.collabEnd || '',
@@ -2269,7 +2407,10 @@
 
           const dates = {
             contract: normalizeExcelDate(row['簽約日期']),
+            script: normalizeExcelDate(row['腳本截止日']),
+            scriptProvided: normalizeExcelDate(row['腳本提供日期']),
             draft: normalizeExcelDate(row['初稿截止日']),
+            draftProvided: normalizeExcelDate(row['初稿提供日期']),
             collab: normalizeExcelDate(row['合作日期']),
             collabStart: normalizeExcelDate(row['合作開始日']),
             collabEnd: normalizeExcelDate(row['合作結束日'])
