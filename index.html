@@ -161,11 +161,58 @@
     font-size: 12px; font-family: 'IBM Plex Mono', monospace; background: rgba(255,255,255,0.8);
   }
 
-  .note-actions{ display:flex; gap:6px; margin-top:8px; }
-  .note-actions select{
-    flex:1; font-size:11.5px; padding:5px 6px; border-radius:5px; border:1px solid rgba(0,0,0,0.15);
-    background: rgba(255,255,255,0.6); font-family:'Inter';
+  .note-actions{ display:flex; gap:6px; margin-top:10px; align-items:stretch; }
+  .note-next-btn{
+    flex:1; border:1px solid transparent; border-radius:7px;
+    padding:8px 10px; font-size:11.5px; font-weight:800; cursor:pointer;
+    font-family:'Inter', sans-serif; letter-spacing:.1px;
+    transition:all .18s ease;
+    box-shadow:0 1px 2px rgba(0,0,0,.08);
   }
+
+  /* 下一步按鈕：提高文字與背景的對比 */
+  .note-next-btn.next-review{
+    background:#4F6F52;
+    color:#FFFFFF;
+    border-color:#3F5D42;
+  }
+  .note-next-btn.next-review:hover{
+    background:#3F5D42;
+    color:#FFFFFF;
+    transform:translateY(-1px);
+    box-shadow:0 3px 8px rgba(63,93,66,.22);
+  }
+
+  .note-next-btn.next-billing{
+    background:#8A5A44;
+    color:#FFFFFF;
+    border-color:#744936;
+  }
+  .note-next-btn.next-billing:hover{
+    background:#744936;
+    color:#FFFFFF;
+    transform:translateY(-1px);
+    box-shadow:0 3px 8px rgba(116,73,54,.22);
+  }
+
+  .note-next-btn.next-paid{
+    background:#5B657A;
+    color:#FFFFFF;
+    border-color:#4B5568;
+  }
+  .note-next-btn.next-paid:hover{
+    background:#4B5568;
+    color:#FFFFFF;
+    transform:translateY(-1px);
+    box-shadow:0 3px 8px rgba(75,85,104,.22);
+  }
+
+  .note-next-btn:active{ transform:translateY(0); box-shadow:0 1px 2px rgba(0,0,0,.08); }
+  .note-next-btn:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:2px;
+  }
+
   .note-del{ background:none; border:none; cursor:pointer; opacity:0.55; font-size:13px; padding:4px 6px; }
   .note-del:hover{ opacity:1; }
 
@@ -276,10 +323,351 @@
   }
   .btn-danger:hover{ background:#C94848; }
 
+  .trash-item{
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    background: var(--bg); border:1px solid var(--line); border-radius:9px;
+    padding:10px 12px; margin-bottom:8px;
+  }
+  .trash-item-info{ min-width:0; }
+  .trash-item-name{ font-size:13.5px; font-weight:600; margin:0 0 2px; }
+  .trash-item-meta{ font-size:11px; color: var(--text-soft); font-family:'IBM Plex Mono', monospace; }
+  .trash-item-actions{ display:flex; gap:6px; flex-shrink:0; }
+  .btn-restore{
+    background: var(--mint); color:#0F3B29; border:none; border-radius:6px;
+    padding:7px 11px; font-size:12px; font-weight:600; cursor:pointer; font-family:'Inter';
+  }
+  .btn-restore:hover{ opacity:0.85; }
+  .btn-purge{
+    background:transparent; border:1px solid rgba(232,93,93,0.5); color: var(--danger);
+    border-radius:6px; padding:7px 11px; font-size:12px; cursor:pointer; font-family:'Inter';
+  }
+  .btn-purge:hover{ background: rgba(232,93,93,0.12); }
+  .trash-empty{ text-align:center; color: var(--text-soft); font-size:12.5px; padding:20px 0; }
+
+  .report-panel{
+    background: var(--bg-panel); border:1px solid var(--line); border-radius:12px;
+    padding:16px; margin-bottom:18px;
+  }
+  .report-panel h3{ font-size:13px; margin:0 0 14px; color: var(--text-soft); font-weight:600; }
+
+  .monthly-chart{ display:flex; align-items:flex-end; gap:6px; height:140px; }
+  .monthly-bar-wrap{
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
+    height:100%; gap:4px;
+  }
+  .monthly-bar{
+    width:100%; background: var(--mint); border-radius:4px 4px 0 0; min-height:2px;
+  }
+  .monthly-bar-label{ font-size:10px; color: var(--text-soft); font-family:'IBM Plex Mono', monospace; }
+  .monthly-bar-value{ font-size:9.5px; color: var(--text-soft); font-family:'IBM Plex Mono', monospace; }
+
+  .platform-breakdown{ display:flex; flex-direction:column; gap:10px; }
+  .platform-row{ display:flex; align-items:center; gap:10px; }
+  .platform-row-label{ width:80px; flex-shrink:0; font-size:12px; color: var(--text); }
+  .platform-row-track{ flex:1; height:8px; background: var(--bg); border-radius:4px; overflow:hidden; }
+  .platform-row-fill{ height:100%; background: var(--accent); border-radius:4px; }
+  .platform-row-value{ width:90px; flex-shrink:0; text-align:right; font-size:11.5px; font-family:'IBM Plex Mono', monospace; color: var(--text-soft); }
+
+  .closed-list{ display:flex; flex-direction:column; gap:8px; }
+  .closed-item{
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    background: var(--bg); border:1px solid var(--line); border-radius:9px; padding:10px 12px;
+    cursor:pointer;
+  }
+  .closed-item:hover{ border-color: var(--accent); }
+  .closed-item-info{ min-width:0; }
+  .closed-item-name{ font-size:13px; font-weight:600; margin:0 0 2px; }
+  .closed-item-meta{ font-size:11px; color: var(--text-soft); font-family:'IBM Plex Mono', monospace; }
+  .closed-item-fee{ font-family:'IBM Plex Mono', monospace; font-weight:600; color: var(--mint); flex-shrink:0; }
+  .report-empty{ text-align:center; color: var(--text-soft); font-size:12.5px; padding:20px 0; }
+
   @media (max-width:640px){
     .add-grid{ grid-template-columns: 1fr 1fr; }
     .stat{ min-width: 100%; }
   }
+
+  /* --- 視覺化狀態流轉列樣式 --- */
+  .status-flow-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(0, 0, 0, 0.12);
+    border-radius: 6px;
+    padding: 6px 4px;
+    margin-bottom: 10px;
+    position: relative;
+  }
+  .status-step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+    cursor: pointer;
+  }
+  .status-step::before {
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: -50%;
+    width: 100%;
+    height: 2px;
+    background: rgba(0, 0, 0, 0.15);
+    z-index: -1;
+  }
+  .status-step:first-child::before {
+    display: none;
+  }
+  .status-step.completed::before {
+    background: rgba(0, 0, 0, 0.5);
+  }
+  .status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    transition: all 0.2s ease;
+  }
+  .status-step.active .status-dot {
+    background: #2B2620;
+    transform: scale(1.2);
+    border-color: #2B2620;
+    box-shadow: 0 0 4px rgba(0,0,0,0.3);
+  }
+  .status-step.completed .status-dot {
+    background: rgba(0, 0, 0, 0.6);
+    border-color: transparent;
+  }
+  .status-text {
+    font-size: 9.5px;
+    margin-top: 4px;
+    font-weight: 600;
+    opacity: 0.4;
+    transition: all 0.2s ease;
+  }
+  .status-step.active .status-text {
+    opacity: 1;
+    font-weight: 700;
+  }
+  .status-step.completed .status-text {
+    opacity: 0.7;
+  }
+
+  .note-brand{ font-weight:700; font-size:14.5px; margin:0 0 4px; font-family:'Space Grotesk', sans-serif; }
+  .note-no{ font-family:'IBM Plex Mono', monospace; font-size:10px; opacity:0.55; margin:0 0 3px; letter-spacing:0.5px; }
+  .note-product{ font-size:12px; font-weight:500; opacity:0.85; margin:0 0 4px; }
+  .note-type{ font-size:11.5px; opacity:0.75; margin:0 0 8px; }
+  .note-row{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; font-size:12px; }
+  .note-fee{ font-family:'IBM Plex Mono', monospace; font-weight:600; }
+  .note-due{ font-family:'IBM Plex Mono', monospace; opacity:0.75; }
+  .note-due.overdue{ color: #B23A2E; font-weight:600; }
+  .note-dates{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; opacity:0.7; margin-bottom:8px; line-height:1.6; }
+
+  .sales-input-wrap{
+    background: rgba(255,255,255,0.4); border-radius: 6px; padding: 6px 8px; margin: 8px 0;
+  }
+  .sales-input-wrap label{ font-size:11px; display:block; margin-bottom:3px; opacity:0.8; font-weight:600; }
+  .sales-input-wrap input{
+    width: 100%; border: 1px solid rgba(0,0,0,0.2); border-radius: 4px; padding: 4px 6px;
+    font-size: 12px; font-family: 'IBM Plex Mono', monospace; background: rgba(255,255,255,0.8);
+  }
+
+  .note-actions{ display:flex; gap:6px; margin-top:10px; align-items:stretch; }
+  .note-next-btn{
+    flex:1; border:1px solid rgba(43,38,32,0.16); border-radius:7px;
+    padding:7px 9px; font-size:11.5px; font-weight:700; cursor:pointer;
+    background:rgba(255,255,255,0.72); color:var(--text); font-family:'Inter';
+    transition:all .18s ease;
+  }
+  .note-next-btn:hover{
+    background:var(--text); color:#fff; border-color:var(--text);
+    transform:translateY(-1px);
+  }
+  .note-next-btn:active{ transform:translateY(0); }
+  .note-next-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .note-del{ background:none; border:none; cursor:pointer; opacity:0.55; font-size:13px; padding:4px 6px; }
+  .note-del:hover{ opacity:1; }
+
+  .empty-col{ border: 1px dashed var(--line); border-radius:8px; padding:20px 10px; text-align:center; color: var(--text-soft); font-size:12px; }
+
+  .col-more-btn{
+    width:100%; background:transparent; border:1px dashed var(--line); color: var(--text-soft);
+    border-radius:8px; padding:9px; font-size:12px; cursor:pointer; font-family:'Inter'; margin-top:2px;
+  }
+  .col-more-btn:hover{ border-color: var(--accent); color: var(--text); }
+
+  .deadline-banner{
+    background: rgba(255,216,115,0.12); border:1px solid rgba(255,216,115,0.4);
+    border-radius:12px; padding:14px 16px; margin-bottom:20px; display:none;
+  }
+  .deadline-banner.show{ display:block; }
+  .deadline-banner h3{
+    margin:0 0 8px; font-size:13px; color: var(--butter); display:flex; align-items:center; gap:6px;
+  }
+  .deadline-list{ display:flex; flex-direction:column; gap:6px; }
+  .deadline-item{
+    display:flex; justify-content:space-between; align-items:center;
+    font-size:12.5px; background: rgba(255,255,255,0.04); border-radius:7px; padding:7px 10px;
+  }
+  .deadline-item .name{ color: var(--text); }
+  .deadline-item .days{
+    font-family:'IBM Plex Mono', monospace; font-size:11.5px; font-weight:600;
+  }
+  .deadline-item .days.today{ color: var(--danger); }
+  .note-deadline-badge{
+    display:inline-block; font-size:10.5px; font-family:'IBM Plex Mono', monospace;
+    font-weight:600; padding:2px 7px; border-radius:999px; margin-bottom:6px;
+    background: rgba(255,216,115,0.35); color:#5A3D00;
+  }
+  .note-deadline-badge.today{ background: rgba(232,93,93,0.35); color:#5A0F0F; }
+
+  /* login overlay */
+  .login-overlay{
+    position:fixed; inset:0; background: var(--bg);
+    display:flex; align-items:center; justify-content:center;
+    z-index:100; padding:20px;
+  }
+  .login-card{
+    background: var(--bg-panel); border:1px solid var(--line); border-radius:16px;
+    padding:36px 32px; text-align:center; max-width:340px; width:100%;
+  }
+  .login-card h1{
+    font-family:'Space Grotesk', 'Noto Sans TC', sans-serif; font-size:26px; margin:0 0 6px;
+  }
+  .login-card p{ color: var(--text-soft); font-size:13px; margin:0 0 26px; }
+  .login-form{ display:flex; flex-direction:column; gap:10px; text-align:left; }
+  .login-form label{ font-size:11.5px; color: var(--text-soft); margin-bottom:3px; display:block; }
+  .login-form input{
+    width:100%; padding:10px 11px; border-radius:7px; border:1px solid var(--line);
+    background: var(--bg); color: var(--text); font-size:14px; font-family:'Inter';
+  }
+  .btn-auth-primary{
+    background: var(--accent); color:#3A1420; border:none; border-radius:7px;
+    padding:11px; font-weight:600; font-size:14px; cursor:pointer; font-family:'Inter';
+    margin-top:4px;
+  }
+  .btn-auth-primary:hover{ background: var(--accent-dark); color:#fff; }
+  .auth-toggle-row{ text-align:center; margin-top:16px; font-size:12.5px; color: var(--text-soft); }
+  .auth-toggle-link{
+    background:none; border:none; color: var(--accent); cursor:pointer; font-size:12.5px;
+    font-family:'Inter'; text-decoration:underline; padding:0;
+  }
+  .login-err{ color: var(--danger); font-size:12.5px; margin-top:14px; display:none; }
+  .login-ok{ color: var(--mint); font-size:12.5px; margin-top:14px; display:none; }
+  .login-loading{ color: var(--text-soft); font-size:12.5px; margin-top:14px; display:none; }
+  .app-hidden{ display:none !important; }
+  .forgot-row{ text-align:center; margin-top:10px; }
+  .forgot-row button{
+    background:none; border:none; color: var(--text-soft); cursor:pointer; font-size:12px;
+    font-family:'Inter'; text-decoration:underline; padding:0;
+  }
+
+  .modal-overlay{
+    position:fixed; inset:0; background: rgba(0,0,0,0.55);
+    display:flex; align-items:center; justify-content:center;
+    z-index:200; padding:20px;
+  }
+  .modal-card{
+    background: var(--bg-panel); border:1px solid var(--line); border-radius:16px;
+    padding:28px; max-width:400px; width:100%; max-height:88vh; overflow-y:auto; position:relative;
+  }
+  .modal-card h2{
+    font-family:'Space Grotesk', 'Noto Sans TC', sans-serif; font-size:20px; margin:0 0 18px;
+  }
+  .modal-section{ margin-bottom:22px; }
+  .modal-section h3{ font-size:13px; margin:0 0 10px; color: var(--text-soft); font-weight:600; }
+  .modal-section .login-form{ gap:8px; }
+  .modal-section .login-err, .modal-section .login-ok{ margin-top:8px; }
+  .modal-close{
+    position:absolute; top:16px; right:18px; background:none; border:none;
+    color: var(--text-soft); font-size:18px; cursor:pointer;
+  }
+  .danger-zone{
+    border:1px solid rgba(232,93,93,0.4); border-radius:10px; padding:14px;
+    background: rgba(232,93,93,0.06);
+  }
+  .danger-zone h3{ color: var(--danger); }
+  .danger-zone p{ font-size:12px; color: var(--text-soft); margin:0 0 10px; }
+  .btn-danger{
+    background: var(--danger); color:#fff; border:none; border-radius:7px;
+    padding:10px; font-weight:600; font-size:13.5px; cursor:pointer; font-family:'Inter';
+    width:100%; margin-top:4px;
+  }
+  .btn-danger:hover{ background:#C94848; }
+
+  .trash-item{
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    background: var(--bg); border:1px solid var(--line); border-radius:99px;
+    padding:10px 12px; margin-bottom:8px;
+  }
+  .trash-item-info{ min-width:0; }
+  .trash-item-name{ font-size:13.5px; font-weight:600; margin:0 0 2px; }
+  .trash-item-meta{ font-size:11px; color: var(--text-soft); font-family:'IBM Plex Mono', monospace; }
+  .trash-item-actions{ display:flex; gap:6px; flex-shrink:0; }
+  .btn-restore{
+    background: var(--mint); color:#0F3B29; border:none; border-radius:6px;
+    padding:7px 11px; font-size:12px; font-weight:600; cursor:pointer; font-family:'Inter';
+  }
+  .btn-restore:hover{ opacity:0.85; }
+  .btn-purge{
+    background:transparent; border:1px solid rgba(232,93,93,0.5); color: var(--danger);
+    border-radius:6px; padding:7px 11px; font-size:12px; cursor:pointer; font-family:'Inter';
+  }
+  .btn-purge:hover{ background: rgba(232,93,93,0.12); }
+  .trash-empty{ text-align:center; color: var(--text-soft); font-size:12.5px; padding:20px 0; }
+
+  .report-panel{
+    background: var(--bg-panel); border:1px solid var(--line); border-radius:12px;
+    padding:16px; margin-bottom:18px;
+  }
+  .report-panel h3{ font-size:13px; margin:0 0 14px; color: var(--text-soft); font-weight:600; }
+
+  .monthly-chart{ display:flex; align-items:flex-end; gap:6px; height:140px; }
+  .monthly-bar-wrap{
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
+    height:100%; gap:4px;
+  }
+  .monthly-bar{
+    width:100%; background: var(--mint); border-radius:4px 4px 0 0; min-height:2px;
+  }
+  .monthly-bar-label{ font-size:10px; color: var(--text-soft); font-family:'IBM Plex Mono', monospace; }
+  .monthly-bar-value{ font-size:9.5px; color: var(--text-soft); font-family:'IBM Plex Mono', monospace; }
+
+  .platform-breakdown{ display:flex; flex-direction:column; gap:10px; }
+  .platform-row{ display:flex; align-items:center; gap:10px; }
+  .platform-row-label{ width:80px; flex-shrink:0; font-size:12px; color: var(--text); }
+  .platform-row-track{ flex:1; height:8px; background: var(--bg); border-radius:4px; overflow:hidden; }
+  .platform-row-fill{ height:100%; background: var(--accent); border-radius:4px; }
+  .platform-row-value{ width:90px; flex-shrink:0; text-align:right; font-size:11.5px; font-family:'IBM Plex Mono', monospace; color: var(--text-soft); }
+
+  .closed-list{ display:flex; flex-direction:column; gap:8px; }
+  .closed-item{
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    background: var(--bg); border:1px solid var(--line); border-radius:9px; padding:10px 12px;
+    cursor:pointer;
+  }
+  .closed-item:hover{ border-color: var(--accent); }
+  .closed-item-info{ min-width:0; }
+  .closed-item-name{ font-size:13px; font-weight:600; margin:0 0 2px; }
+  .closed-item-meta{ font-size:11px; color: var(--text-soft); font-family:'IBM Plex Mono', monospace; }
+  .closed-item-fee{ font-family:'IBM Plex Mono', monospace; font-weight:600; color: var(--mint); flex-shrink:0; }
+  .report-empty{ text-align:center; color: var(--text-soft); font-size:12.5px; padding:20px 0; }
+
+  @media (max-width:640px){
+    .add-grid{ grid-template-columns: 1fr 1fr; }
+    .stat{ min-width: 100%; }
+  }
+
+
+  .closed-sales-edit{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap;}
+  .closed-sales-edit label{font-size:11px;color:var(--text-soft);white-space:nowrap;}
+  .closed-sales-edit input{width:150px;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:6px;padding:6px 8px;font-size:12px;outline:none;}
+  .closed-sales-edit input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(255,111,145,.12);}
+  .closed-item-fee{display:flex;flex-direction:column;align-items:flex-end;gap:3px;white-space:nowrap;}
+  .closed-item-fee span{font-size:10px;color:var(--text-soft);font-weight:500;}
+  .closed-item-fee strong{font-size:15px;color:var(--mint);}
 </style>
 </head>
 <body>
@@ -324,10 +712,18 @@
       <button class="btn-account" id="btnExportExcel">匯出 Excel</button>
       <button class="btn-account" id="btnImportExcel">匯入 Excel</button>
       <input type="file" id="fileImportExcel" accept=".xlsx, .xls, .csv" style="display:none;" />
+      <button class="btn-account" id="btnViewTrash">已刪除案件</button>
       <button class="btn-account" id="btnAccountSettings">帳號設定</button>
       <button class="btn-logout" id="btnLogout">登出</button>
     </div>
   </div>
+
+  <div class="filters" id="viewTabs">
+    <button class="tab active" data-view="board">案件看板</button>
+    <button class="tab" data-view="report">結案報表</button>
+  </div>
+
+  <div id="boardView">
 
   <div class="deadline-banner" id="deadlineBanner">
     <h3>⏰ 即將到期的初稿</h3>
@@ -376,6 +772,10 @@
         <div class="date-field" id="rangeCollabEndWrap" style="display:none;">
           <label for="inputDateCollabEnd">合作結束日期</label>
           <input type="date" id="inputDateCollabEnd">
+        </div>
+        <div class="date-field">
+          <label for="inputPaidDate">收款日期</label>
+          <input type="date" id="inputPaidDate">
         </div>
       </div>
       <div class="noncompete-row">
@@ -456,6 +856,40 @@
 
   <div class="board" id="board"></div>
 
+  </div>
+
+  <div id="reportView" class="app-hidden">
+    <div class="filters" id="reportYearFilters">
+      <button class="tab active" data-year="all">全部年份</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat paid">
+        <div class="l">已結案總收入</div>
+        <div class="n" id="reportTotalPaid">NT$0</div>
+      </div>
+      <div class="stat">
+        <div class="l">已結案件數</div>
+        <div class="n" id="reportTotalCount">0</div>
+      </div>
+    </div>
+
+    <div class="report-panel">
+      <h3>每月收入</h3>
+      <div id="monthlyChart" class="monthly-chart"></div>
+    </div>
+
+    <div class="report-panel">
+      <h3>平台收入分佈</h3>
+      <div id="platformBreakdown" class="platform-breakdown"></div>
+    </div>
+
+    <div class="report-panel">
+      <h3>已結案清單</h3>
+      <div id="closedList" class="closed-list"></div>
+    </div>
+  </div>
+
 </div>
 
 <!-- 帳號設定彈窗 -->
@@ -493,6 +927,16 @@
       </div>
       <p class="login-err" id="deleteAccErr"></p>
     </div>
+  </div>
+</div>
+
+<!-- 已刪除案件彈窗 -->
+<div class="modal-overlay app-hidden" id="trashModal">
+  <div class="modal-card">
+    <button class="modal-close" id="btnCloseTrashModal" aria-label="關閉">✕</button>
+    <h2>已刪除案件</h2>
+    <p style="font-size:12px; color: var(--text-soft); margin:-10px 0 16px;">案件刪除後會先移到這裡，你可以復原，或永久刪除。</p>
+    <div id="trashList"></div>
   </div>
 </div>
 
@@ -544,6 +988,7 @@
     { key:'待請款', dot: 'var(--danger)' },
     { key:'已收款', dot: 'var(--mint)' }
   ];
+  const BOARD_STAGES = STAGES.filter(s => s.key !== '已收款'); // 看板不顯示已收款欄位，改在結案報表呈現
 
   // ---------- 登入系統 ----------
 
@@ -747,6 +1192,103 @@
     }
   });
 
+  // ---------- 已刪除案件（垃圾桶）----------
+
+  function fmtDeletedAt(ts){
+    if(!ts) return '';
+    const d = new Date(ts);
+    return (d.getMonth()+1) + '/' + d.getDate() + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+  }
+
+  const TRASH_RETENTION_MS = 30 * 24 * 60 * 60 * 1000; // 垃圾桶保留 30 天
+
+  async function purgeExpiredTrash(){
+    if(!currentUser) return;
+    const snapshot = await get(ref(db, `users/${currentUser.uid}/trash`));
+    if(!snapshot.exists()) return;
+    const data = snapshot.val();
+    const now = Date.now();
+    const updates = {};
+    Object.keys(data).forEach(key => {
+      const item = data[key];
+      if(item.deletedAt && (now - item.deletedAt) > TRASH_RETENTION_MS){
+        updates[`users/${currentUser.uid}/trash/${key}`] = null;
+      }
+    });
+    if(Object.keys(updates).length > 0){
+      await update(ref(db), updates);
+    }
+  }
+
+  async function openTrashModal(){
+    document.getElementById('trashModal').classList.remove('app-hidden');
+    await purgeExpiredTrash();
+    await renderTrashList();
+  }
+
+  function closeTrashModal(){
+    document.getElementById('trashModal').classList.add('app-hidden');
+  }
+
+  async function renderTrashList(){
+    const listEl = document.getElementById('trashList');
+    if(!currentUser){
+      listEl.innerHTML = '';
+      return;
+    }
+    const snapshot = await get(ref(db, `users/${currentUser.uid}/trash`));
+    const data = snapshot.exists() ? snapshot.val() : null;
+
+    if(!data){
+      listEl.innerHTML = '<p class="trash-empty">目前沒有已刪除的案件</p>';
+      return;
+    }
+
+    const items = Object.keys(data).map(key => ({ id: key, ...data[key] }))
+      .sort((a,b) => (b.deletedAt || 0) - (a.deletedAt || 0));
+
+    listEl.innerHTML = items.map(c => {
+      return '<div class="trash-item">'
+        + '<div class="trash-item-info">'
+        + '<p class="trash-item-name">' + (c.caseNo ? c.caseNo + ' · ' : '') + escapeHtml(c.brand || '') + '</p>'
+        + '<p class="trash-item-meta">刪除於 ' + fmtDeletedAt(c.deletedAt) + '</p>'
+        + '</div>'
+        + '<div class="trash-item-actions">'
+        + '<button class="btn-restore" onclick="restoreCase(\'' + c.id + '\')">復原</button>'
+        + '<button class="btn-purge" onclick="purgeCase(\'' + c.id + '\')">永久刪除</button>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  async function restoreCase(id){
+    if(!currentUser) return;
+    const snapshot = await get(ref(db, `users/${currentUser.uid}/trash/` + id));
+    if(!snapshot.exists()) return;
+    const data = snapshot.val();
+    const { deletedAt, ...caseData } = data;
+    await set(ref(db, `users/${currentUser.uid}/cases/` + id), caseData);
+    await remove(ref(db, `users/${currentUser.uid}/trash/` + id));
+    await renderTrashList();
+  }
+
+  async function purgeCase(id){
+    if(!currentUser) return;
+    const confirmed = window.confirm('確定要永久刪除這筆案件嗎？刪除後無法復原。');
+    if(!confirmed) return;
+    await remove(ref(db, `users/${currentUser.uid}/trash/` + id));
+    await renderTrashList();
+  }
+
+  window.restoreCase = restoreCase;
+  window.purgeCase = purgeCase;
+
+  document.getElementById('btnViewTrash').addEventListener('click', openTrashModal);
+  document.getElementById('btnCloseTrashModal').addEventListener('click', closeTrashModal);
+  document.getElementById('trashModal').addEventListener('click', e => {
+    if(e.target.id === 'trashModal') closeTrashModal();
+  });
+
   onAuthStateChanged(auth, (user) => {
     if(casesRef){
       off(casesRef);
@@ -758,10 +1300,12 @@
       cases = [];
       resetForm();
       initRealtimeSync(user.uid);
+      purgeExpiredTrash();
     }else{
       currentUser = null;
       cases = [];
       closeAccountModal();
+      closeTrashModal();
       showLogin();
     }
   });
@@ -888,6 +1432,7 @@
     document.getElementById('inputDateCollab').value = '';
     document.getElementById('inputDateCollabStart').value = '';
     document.getElementById('inputDateCollabEnd').value = '';
+    document.getElementById('inputPaidDate').value = '';
     document.getElementById('inputHasNonCompete').checked = false;
     document.getElementById('inputNonCompeteDate').value = '';
     document.getElementById('nonCompeteDateWrap').classList.remove('show');
@@ -966,11 +1511,12 @@
       collabStart: needsRate ? (document.getElementById('inputDateCollabStart').value || null) : null,
       collabEnd: needsRate ? (document.getElementById('inputDateCollabEnd').value || null) : null
     };
+    const paidDate = document.getElementById('inputPaidDate').value || null;
 
     if(editingId){
       await update(ref(db, `users/${currentUser.uid}/cases/` + editingId), {
         brand, platforms, types, modes, product, fee, dates, hasNonCompete, nonCompeteDate,
-        authTypes, authDate, commissionRate
+        authTypes, authDate, commissionRate, paidDate
       });
     }else{
       const newId = uid();
@@ -978,7 +1524,7 @@
       await set(ref(db, `users/${currentUser.uid}/cases/` + newId), {
         caseNo,
         brand, platforms, types, modes, product, fee, dates, hasNonCompete, nonCompeteDate,
-        authTypes, authDate, commissionRate,
+        authTypes, authDate, commissionRate, paidDate,
         salesAmount: null,
         stage: '製作中',
         createdAt: Date.now()
@@ -1007,6 +1553,7 @@
     document.getElementById('inputDateCollab').value = d.collab || '';
     document.getElementById('inputDateCollabStart').value = d.collabStart || '';
     document.getElementById('inputDateCollabEnd').value = d.collabEnd || '';
+    document.getElementById('inputPaidDate').value = c.paidDate || '';
 
     document.getElementById('inputHasNonCompete').checked = !!c.hasNonCompete;
     document.getElementById('inputNonCompeteDate').value = c.nonCompeteDate || '';
@@ -1045,7 +1592,43 @@
 
   async function updateStage(id, newStage){
     if(!currentUser) return;
-    await update(ref(db, `users/${currentUser.uid}/cases/` + id), { stage: newStage });
+    const c = cases.find(x => x.id === id);
+    if(!c) return;
+
+    const updates = { stage: newStage };
+    if(newStage === '已收款' && !c.paidDate){
+      updates.paidDate = new Date().toISOString().slice(0, 10);
+    }
+
+    await update(ref(db, `users/${currentUser.uid}/cases/` + id), updates);
+  }
+
+  // 案件流程的「下一步」操作：不再使用下拉式選單。
+  // 製作中 → 待審核 → 待請款 → 已收款
+  async function advanceStage(id){
+    if(!currentUser) return;
+
+    const c = cases.find(x => x.id === id);
+    if(!c) return;
+
+    const nextStageMap = {
+      '製作中': '待審核',
+      '待審核': '待請款',
+      '待請款': '已收款'
+    };
+
+    const nextStage = nextStageMap[c.stage];
+    if(!nextStage) return;
+
+    // 「待請款 → 已收款」會直接進入結案報表，避免誤按。
+    if(nextStage === '已收款'){
+      const confirmed = window.confirm(
+        '確定要將「' + (c.brand || '此案件') + '」標記為已收款嗎？\n\n標記後案件會移至「結案報表」。'
+      );
+      if(!confirmed) return;
+    }
+
+    await updateStage(id, nextStage);
   }
 
   async function updateSalesAmount(id, val){
@@ -1054,15 +1637,39 @@
     await update(ref(db, `users/${currentUser.uid}/cases/` + id), { salesAmount });
   }
 
+  async function updatePaidDate(id, val){
+    if(!currentUser) return;
+    const paidDate = val || null;
+    await update(ref(db, `users/${currentUser.uid}/cases/` + id), { paidDate });
+  }
+
   async function deleteCase(id){
     if(!currentUser) return;
+    const c = cases.find(x => x.id === id);
+    if(!c) return;
+    const { id: _omit, ...caseData } = c;
+    await set(ref(db, `users/${currentUser.uid}/trash/` + id), {
+      ...caseData,
+      deletedAt: Date.now()
+    });
     await remove(ref(db, `users/${currentUser.uid}/cases/` + id));
     if(editingId === id) resetForm();
   }
 
+  function openClosedCaseForEdit(id){
+    document.querySelectorAll('#viewTabs .tab').forEach(b => b.classList.remove('active'));
+    document.querySelector('#viewTabs .tab[data-view="board"]').classList.add('active');
+    document.getElementById('boardView').classList.remove('app-hidden');
+    document.getElementById('reportView').classList.add('app-hidden');
+    editCase(id);
+  }
+
   window.editCase = editCase;
+  window.openClosedCaseForEdit = openClosedCaseForEdit;
   window.updateStage = updateStage;
+  window.advanceStage = advanceStage;
   window.updateSalesAmount = updateSalesAmount;
+  window.updatePaidDate = updatePaidDate;
   window.deleteCase = deleteCase;
 
   function getEffectiveFee(c){
@@ -1151,8 +1758,127 @@
     container.innerHTML = html;
   }
 
+  let currentReportYear = 'all';
+
+  function getYearForClosed(c){
+    if(c.paidDate) return new Date(c.paidDate).getFullYear();
+    return getTargetYear(c.dates);
+  }
+
+  function renderReportYearFilters(closedCases){
+    const yearSet = new Set();
+    closedCases.forEach(c => yearSet.add(getYearForClosed(c)));
+    const sortedYears = Array.from(yearSet).sort((a,b) => b - a);
+    const container = document.getElementById('reportYearFilters');
+    let html = '<button class="tab ' + (currentReportYear === 'all' ? 'active' : '') + '" data-year="all">全部年份</button>';
+    sortedYears.forEach(y => {
+      html += '<button class="tab ' + (String(currentReportYear) === String(y) ? 'active' : '') + '" data-year="' + y + '">' + y + ' 年</button>';
+    });
+    container.innerHTML = html;
+  }
+
+  function renderReport(){
+    const closedCases = cases.filter(c => c.stage === '已收款');
+    renderReportYearFilters(closedCases);
+    const filtered = currentReportYear === 'all'
+      ? closedCases
+      : closedCases.filter(c => String(getYearForClosed(c)) === String(currentReportYear));
+
+    document.getElementById('reportTotalCount').textContent = filtered.length;
+    const totalPaid = filtered.reduce((s,c) => s + getEffectiveFee(c), 0);
+    document.getElementById('reportTotalPaid').textContent = fmtMoney(totalPaid);
+
+    const monthly = new Array(12).fill(0);
+    filtered.forEach(c => {
+      if(!c.paidDate) return;
+      const m = new Date(c.paidDate).getMonth();
+      monthly[m] += getEffectiveFee(c);
+    });
+    const maxMonthly = Math.max(...monthly, 1);
+    const chartEl = document.getElementById('monthlyChart');
+    if(filtered.length === 0){
+      chartEl.innerHTML = '<p class="report-empty">尚無已結案資料</p>';
+    }else{
+      chartEl.innerHTML = monthly.map((v, i) => {
+        const heightPct = v > 0 ? Math.max(Math.round((v / maxMonthly) * 100), 4) : 0;
+        return '<div class="monthly-bar-wrap">'
+          + '<span class="monthly-bar-value">' + (v > 0 ? Math.round(v/1000) + 'k' : '') + '</span>'
+          + '<div class="monthly-bar" style="height:' + heightPct + '%"></div>'
+          + '<span class="monthly-bar-label">' + (i + 1) + '月</span>'
+          + '</div>';
+      }).join('');
+    }
+
+    const platformTotals = {};
+    filtered.forEach(c => {
+      const fee = getEffectiveFee(c);
+      (c.platforms || []).forEach(p => {
+        platformTotals[p] = (platformTotals[p] || 0) + fee;
+      });
+    });
+    const platformEntries = Object.entries(platformTotals).sort((a,b) => b[1] - a[1]);
+    const maxPlatform = Math.max(...platformEntries.map(e => e[1]), 1);
+    const platformEl = document.getElementById('platformBreakdown');
+    if(platformEntries.length === 0){
+      platformEl.innerHTML = '<p class="report-empty">尚無已結案資料</p>';
+    }else{
+      platformEl.innerHTML = platformEntries.map(([p, total]) => {
+        const pct = Math.round((total / maxPlatform) * 100);
+        return '<div class="platform-row">'
+          + '<span class="platform-row-label">' + p + '</span>'
+          + '<div class="platform-row-track"><div class="platform-row-fill" style="width:' + pct + '%"></div></div>'
+          + '<span class="platform-row-value">' + fmtMoney(total) + '</span>'
+          + '</div>';
+      }).join('');
+    }
+
+    const listEl = document.getElementById('closedList');
+    const sorted = [...filtered].sort((a,b) => {
+      const noA = String(a.caseNo || '').trim();
+      const noB = String(b.caseNo || '').trim();
+      // 已結案依案件編號由小到大排序，讓案件順序固定且方便查找
+      if(noA && noB){
+        const ma = noA.match(/(\d+)(?!.*\d)/);
+        const mb = noB.match(/(\d+)(?!.*\d)/);
+        if(ma && mb){
+          const diff = Number(ma[1]) - Number(mb[1]);
+          if(diff !== 0) return diff;
+        }
+        const cmp = noA.localeCompare(noB, 'zh-Hant', {numeric:true, sensitivity:'base'});
+        if(cmp !== 0) return cmp;
+      }else if(noA) return -1;
+      else if(noB) return 1;
+      return 0;
+    });
+    if(sorted.length === 0){
+      listEl.innerHTML = '<p class="report-empty">尚無已結案資料</p>';
+    }else{
+      listEl.innerHTML = sorted.map(c => {
+        const isComm = c.modes && (c.modes.includes('團購') || c.modes.includes('分潤'));
+        const salesAmountHtml = isComm
+          ? '<div class="closed-sales-edit" onclick="event.stopPropagation()">'
+            + '<label>總銷售金額</label>'
+            + '<input type="number" min="0" step="1" placeholder="請輸入" value="' + (c.salesAmount != null ? c.salesAmount : '') + '" onchange="updateSalesAmount(\'' + c.id + '\', this.value)" onclick="event.stopPropagation()">'
+            + '</div>'
+          : '';
+        return '<div class="closed-item" onclick="openClosedCaseForEdit(\'' + c.id + '\')">'
+          + '<div class="closed-item-info">'
+          + '<p class="closed-item-name">' + (c.caseNo ? c.caseNo + ' · ' : '') + escapeHtml(c.brand || '') + '</p>'
+          + '<p class="closed-item-meta">' + (c.paidDate ? '收款於 ' + fmtDue(c.paidDate) : '未填收款日期') + ' · ' + (c.platforms || []).join('／') + '</p>'
+          + salesAmountHtml
+          + '</div>'
+          + '<div class="closed-item-fee">'
+          + '<span>實收金額</span>'
+          + '<strong>' + fmtMoney(getEffectiveFee(c)) + '</strong>'
+          + '</div>'
+          + '</div>';
+      }).join('');
+    }
+  }
+
   function render(){
     renderDeadlineBanner(cases);
+    renderReport();
 
     const filtered = cases.filter(c => {
       const matchPlat = currentPlat === 'all' || (c.platforms && c.platforms.includes(currentPlat));
@@ -1170,7 +1896,7 @@
     document.getElementById('statPaid').textContent = fmtMoney(paid);
 
     const board = document.getElementById('board');
-    board.innerHTML = STAGES.map((stage) => {
+    board.innerHTML = BOARD_STAGES.map((stage) => {
       const allItems = filtered.filter(c => c.stage === stage.key)
         .sort((a,b) => {
           const da = getSortDate(a);
@@ -1190,9 +1916,6 @@
         : items.map((c, i) => {
             const overdue = isOverdue(c);
             const noteClass = 'n' + (i % 4);
-            const optionsHtml = STAGES.map(s =>
-              '<option value="' + s.key + '"' + (s.key === c.stage ? ' selected' : '') + '>' + s.key + '</option>'
-            ).join('');
 
             const d = c.dates || {};
             let collabStr = null;
@@ -1229,6 +1952,14 @@
                 + '</div>';
             }
 
+            let paidDateInputHtml = '';
+            if(c.stage === '待請款'){
+              paidDateInputHtml = '<div class="sales-input-wrap">'
+                + '<label>收款日期</label>'
+                + '<input type="date" value="' + (c.paidDate || '') + '" onchange="updatePaidDate(\'' + c.id + '\', this.value)">'
+                + '</div>';
+            }
+
             return '<div class="note ' + noteClass + '" onclick="if(!event.target.closest(\'select, button, input\')) editCase(\'' + c.id + '\')">'
               + (c.caseNo ? '<p class="note-no">' + c.caseNo + '</p>' : '')
               + deadlineBadgeHtml
@@ -1237,6 +1968,7 @@
               + '<p class="note-type">' + (c.platforms||[]).join('／') + ' · ' + (c.types||[]).join('／') + '</p>'
               + (c.modes && c.modes.length ? '<p class="note-type">' + c.modes.join('／') + (c.commissionRate != null ? '（' + c.commissionRate + '%）' : '') + '</p>' : '')
               + salesInputHtml
+              + paidDateInputHtml
               + '<div class="note-row">'
               + '<span class="note-fee">' + fmtMoney(effectiveFee) + (isComm && c.salesAmount != null ? ' <small style="font-weight:normal;opacity:0.8;">(含分潤)</small>' : '') + '</span>'
               + (overdue ? '<span class="note-due overdue">逾期</span>' : '<span></span>')
@@ -1245,8 +1977,10 @@
               + (c.hasNonCompete ? '<div class="note-dates">競業至 ' + fmtDue(c.nonCompeteDate) + '</div>' : '')
               + (c.authTypes && c.authTypes.length ? '<div class="note-dates">' + c.authTypes.join('／') + '授權至 ' + fmtDue(c.authDate) + '</div>' : '')
               + '<div class="note-actions">'
-              + '<select onchange="updateStage(\'' + c.id + '\', this.value)">' + optionsHtml + '</select>'
-              + '<button class="note-del" onclick="deleteCase(\'' + c.id + '\')" aria-label="刪除">✕</button>'
+              + '<button class="note-next-btn ' + (c.stage === '製作中' ? 'next-review' : c.stage === '待審核' ? 'next-billing' : 'next-paid') + '" onclick="event.stopPropagation(); advanceStage(\'' + c.id + '\')">'
+              + (c.stage === '製作中' ? '送審核 →' : c.stage === '待審核' ? '送請款 →' : '✓ 標記已收款')
+              + '</button>'
+              + '<button class="note-del" onclick="event.stopPropagation(); deleteCase(\'' + c.id + '\')" aria-label="刪除">✕</button>'
               + '</div>'
               + '</div>';
           }).join('');
@@ -1371,6 +2105,26 @@
     render();
   });
 
+  document.getElementById('reportYearFilters').addEventListener('click', e => {
+    const btn = e.target.closest('.tab');
+    if(!btn) return;
+    document.querySelectorAll('#reportYearFilters .tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentReportYear = btn.dataset.year;
+    renderReport();
+  });
+
+  document.getElementById('viewTabs').addEventListener('click', e => {
+    const btn = e.target.closest('.tab');
+    if(!btn) return;
+    document.querySelectorAll('#viewTabs .tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const view = btn.dataset.view;
+    document.getElementById('boardView').classList.toggle('app-hidden', view !== 'board');
+    document.getElementById('reportView').classList.toggle('app-hidden', view !== 'report');
+    if(view === 'report') renderReport();
+  });
+
   // 頁面持續開啟時，每 60 秒再檢查一次日期。
   // 這樣跨過午夜後，也能自動把符合條件的「待審核」案件移到「待請款」。
   setInterval(() => {
@@ -1402,6 +2156,7 @@
         '合作日期': d.collab || '',
         '合作開始日': d.collabStart || '',
         '合作結束日': d.collabEnd || '',
+        '收款日期': c.paidDate || '',
         '是否有競業條款': c.hasNonCompete ? '是' : '否',
         '競業截止日': c.nonCompeteDate || '',
         '授權類型': (c.authTypes || []).join(', '),
@@ -1417,6 +2172,71 @@
     XLSX.writeFile(workbook, `合作案件總覽_${today}.xlsx`);
   });
 
+  // ---------- Excel 日期解析 ----------
+  // 支援 Excel 的「日期格式儲存格」與「通用格式」兩種情況：
+  // 1. Excel 真正的日期儲存格：SheetJS 可能回傳 Date 物件或 Excel serial number
+  // 2. 文字日期：2026/8/24、2026-08-24、2026.08.24 等
+  // 最後一律轉成系統 <input type="date"> 使用的 YYYY-MM-DD。
+  function normalizeExcelDate(value) {
+    if (value === null || value === undefined || value === '') return null;
+
+    // SheetJS 在 cellDates:true 時，日期儲存格通常會是 Date。
+    if (value instanceof Date && !isNaN(value.getTime())) {
+      const y = value.getFullYear();
+      const m = String(value.getMonth() + 1).padStart(2, '0');
+      const d = String(value.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    // Excel 日期序號，例如 45893.0。
+    if (typeof value === 'number' && isFinite(value)) {
+      try {
+        const parsed = XLSX.SSF.parse_date_code(value);
+        if (parsed && parsed.y && parsed.m && parsed.d) {
+          return `${String(parsed.y).padStart(4, '0')}-${String(parsed.m).padStart(2, '0')}-${String(parsed.d).padStart(2, '0')}`;
+        }
+      } catch (err) {
+        console.warn('Excel 日期序號解析失敗：', value, err);
+      }
+      return null;
+    }
+
+    let text = String(value).trim();
+    if (!text) return null;
+
+    // 去除常見的 Excel 日期時間尾巴，例如「2026/08/24 00:00:00」。
+    text = text.replace(/T\d{1,2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z)?$/, '')
+               .replace(/\s+\d{1,2}:\d{2}(?::\d{2})?.*$/, '')
+               .trim();
+
+    // YYYY/MM/DD、YYYY-MM-DD、YYYY.MM.DD，以及帶中文年月日。
+    let match = text.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/);
+    if (!match) {
+      match = text.match(/^(\d{4})年(\d{1,2})月(\d{1,2})日/);
+    }
+
+    if (match) {
+      const y = Number(match[1]);
+      const m = Number(match[2]);
+      const d = Number(match[3]);
+      const check = new Date(y, m - 1, d);
+      if (check.getFullYear() === y && check.getMonth() === m - 1 && check.getDate() === d) {
+        return `${String(y).padStart(4, '0')}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      }
+    }
+
+    // 最後再嘗試 Date，但只接受能取得有效日期的結果。
+    const fallback = new Date(text);
+    if (!isNaN(fallback.getTime())) {
+      const y = fallback.getFullYear();
+      const m = String(fallback.getMonth() + 1).padStart(2, '0');
+      const d = String(fallback.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    return null;
+  }
+
   // ---------- Excel 匯入功能 ----------
   document.getElementById('btnImportExcel').addEventListener('click', () => {
     document.getElementById('fileImportExcel').click();
@@ -1430,10 +2250,10 @@
     reader.onload = async (evt) => {
       try {
         const data = new Uint8Array(evt.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
+        const workbook = XLSX.read(data, { type: 'array', cellDates: true });
         const firstSheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[firstSheetName];
-        const rows = XLSX.utils.sheet_to_json(worksheet);
+        const rows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
 
         if (rows.length === 0) {
           alert('匯入的檔案無資料！');
@@ -1448,11 +2268,11 @@
           if (!brand) continue;
 
           const dates = {
-            contract: row['簽約日期'] || null,
-            draft: row['初稿截止日'] || null,
-            collab: row['合作日期'] || null,
-            collabStart: row['合作開始日'] || null,
-            collabEnd: row['合作結束日'] || null
+            contract: normalizeExcelDate(row['簽約日期']),
+            draft: normalizeExcelDate(row['初稿截止日']),
+            collab: normalizeExcelDate(row['合作日期']),
+            collabStart: normalizeExcelDate(row['合作開始日']),
+            collabEnd: normalizeExcelDate(row['合作結束日'])
           };
 
           const targetYear = getTargetYear(dates);
@@ -1497,9 +2317,10 @@
             salesAmount: row['總銷售金額'] !== undefined && row['總銷售金額'] !== '' ? Number(row['總銷售金額']) : null,
             dates,
             hasNonCompete: row['是否有競業條款'] === '是',
-            nonCompeteDate: row['競業截止日'] || null,
+            nonCompeteDate: normalizeExcelDate(row['競業截止日']),
             authTypes: row['授權類型'] ? String(row['授權類型']).split(',').map(s => s.trim()) : [],
-            authDate: row['授權截止日'] || null,
+            authDate: normalizeExcelDate(row['授權截止日']),
+            paidDate: normalizeExcelDate(row['收款日期']),
             stage: row['階段'] || '製作中',
             createdAt: Date.now()
           };
