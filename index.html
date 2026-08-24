@@ -1467,19 +1467,24 @@
 
   function uid(){ return 'c' + Date.now() + Math.random().toString(36).slice(2,7); }
 
-  function getTargetYear(dates) {
+  function getTargetYear(dates, modes, paidDate) {
     const d = dates || {};
-    const collabDate = d.collab || d.collabStart;
-    if (collabDate) return new Date(collabDate).getFullYear();
-    if (d.draft) return new Date(d.draft).getFullYear();
-    if (d.script) return new Date(d.script).getFullYear();
+    const m = Array.isArray(modes) ? modes : [];
+    const isRange = m.includes('團購') || m.includes('分潤');
+
+    // 案件編號年份判定：
+    // 一般合作 → 合作日期
+    // 團購／分潤 → 合作開始日期
+    // 若上述對應日期不存在 → 收款日期 → 簽約日期
+    const primaryDate = isRange ? d.collabStart : d.collab;
+    if (primaryDate) return new Date(primaryDate).getFullYear();
+    if (paidDate) return new Date(paidDate).getFullYear();
     if (d.contract) return new Date(d.contract).getFullYear();
-    if (d.negotiate) return new Date(d.negotiate).getFullYear();
     return new Date().getFullYear();
   }
 
-  async function generateCaseNo(dates){
-    const targetYear = getTargetYear(dates);
+  async function generateCaseNo(dates, modes, paidDate){
+    const targetYear = getTargetYear(dates, modes, paidDate);
     const counterRef = ref(db, `users/${currentUser.uid}/meta/counters/${targetYear}`);
 
     const snapshot = await get(counterRef);
@@ -1800,7 +1805,7 @@
       });
     }else{
       const newId = uid();
-      const caseNo = await generateCaseNo(dates);
+      const caseNo = await generateCaseNo(dates, modes, paidDate);
       await set(ref(db, `users/${currentUser.uid}/cases/` + newId), {
         caseNo,
         brand, platforms, types, modes, product, fee, dates, hasNonCompete, nonCompetePeriod, nonCompeteDate,
@@ -2095,7 +2100,7 @@
   function renderYearFilters(){
     const yearSet = new Set();
     cases.forEach(c => {
-      const y = getTargetYear(c.dates);
+      const y = getTargetYear(c.dates, c.modes, c.paidDate);
       if(y) yearSet.add(y);
     });
 
@@ -2114,7 +2119,7 @@
 
   function getYearForClosed(c){
     if(c.paidDate) return new Date(c.paidDate).getFullYear();
-    return getTargetYear(c.dates);
+    return getTargetYear(c.dates, c.modes, c.paidDate);
   }
 
   function renderReportYearFilters(closedCases){
@@ -2235,7 +2240,7 @@
 
     const filtered = cases.filter(c => {
       const matchPlat = currentPlat === 'all' || (c.platforms && c.platforms.includes(currentPlat));
-      const caseYear = String(getTargetYear(c.dates));
+      const caseYear = String(getTargetYear(c.dates, c.modes, c.paidDate));
       const matchYear = currentYear === 'all' || caseYear === String(currentYear);
       return matchPlat && matchYear;
     });
@@ -2779,7 +2784,9 @@
             collabEnd: normalizeExcelDate(row['合作結束日'])
           };
 
-          const targetYear = getTargetYear(dates);
+          const importModes = row['合作模式'] ? String(row['合作模式']).split(',').map(s => s.trim()).filter(Boolean) : [];
+          const importPaidDate = normalizeExcelDate(row['收款日期']);
+          const targetYear = getTargetYear(dates, importModes, importPaidDate);
           let caseNo = row['案件編號'] ? String(row['案件編號']).trim() : '';
 
           if (caseNo) {
@@ -2816,7 +2823,7 @@
             fee: Number(row['保底金額']) || 0,
             platforms: row['合作平台'] ? String(row['合作平台']).split(',').map(s => s.trim()) : ['其他'],
             types: row['合作項目'] ? String(row['合作項目']).split(',').map(s => s.trim()) : ['其他'],
-            modes: row['合作模式'] ? String(row['合作模式']).split(',').map(s => s.trim()) : [],
+            modes: importModes,
             commissionRate: row['分潤/團購比例(%)'] !== undefined && row['分潤/團購比例(%)'] !== '' ? Number(row['分潤/團購比例(%)']) : null,
             salesAmount: row['總銷售金額'] !== undefined && row['總銷售金額'] !== '' ? Number(row['總銷售金額']) : null,
             dates,
@@ -2827,7 +2834,7 @@
             authPeriod: ({'1個月':'1m','3個月':'3m','6個月':'6m','12個月':'12m','1 個月':'1m','3 個月':'3m','6 個月':'6m','12 個月':'12m','無期限':'unlimited','自訂截止日':'custom'}[String(row['授權期間'] || '').trim()] || row['授權期間'] || null),
             authDate: normalizeExcelDate(row['授權截止日']),
             authorizationExtensions: extensionMap[String(row['案件編號'] || caseNo).trim()] || [],
-            paidDate: normalizeExcelDate(row['收款日期']),
+            paidDate: importPaidDate,
             stage: row['階段'] || '製作中',
             createdAt: Date.now()
           };
