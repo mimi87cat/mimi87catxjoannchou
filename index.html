@@ -95,6 +95,15 @@
   .mode-chip.selected{ background: var(--sky); color:#0B2E4D; border-color: var(--sky); font-weight:600; }
   .auth-chip.selected{ background: var(--pink); color:#4A0F26; border-color: var(--pink); font-weight:600; }
 
+  .authorization-extension{grid-column:1/-1;border:1px solid var(--line);border-radius:8px;padding:9px 10px;background:rgba(255,255,255,.18);}
+  .auth-extension-head{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;font-weight:700;color:var(--text);}
+  .auth-extension-add{border:1px solid var(--line);background:var(--bg);color:var(--text);border-radius:6px;padding:5px 8px;font-size:11px;cursor:pointer;}
+  .auth-extension-note{font-size:10px;color:var(--text-soft);margin:5px 0 7px;line-height:1.5;}
+  .auth-extension-row{display:grid;grid-template-columns:minmax(90px,1fr) minmax(90px,1fr) minmax(120px,1fr) auto;gap:7px;align-items:end;padding:8px 0;border-top:1px solid var(--line);}
+  .auth-extension-row label{display:block;font-size:10px;color:var(--text-soft);margin-bottom:3px;}
+  .auth-extension-row select,.auth-extension-row input{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--text);padding:6px 7px;font-size:11px;}
+  .auth-extension-remove{border:1px solid #aeb5b0;background:transparent;color:#9aa19d;border-radius:6px;padding:6px 8px;cursor:pointer;font-size:11px;}
+  .auth-extension-summary{font-size:11px;color:#9aa19d;font-weight:700;margin-top:7px;}
   .field-label{ grid-column: 1 / -1; font-size:11.5px; color: var(--text-soft); margin: 2px 0 -4px; }
   .date-fields{ grid-column: 1 / -1; display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:8px; }
   .date-field label{ display:block; font-size:11px; color: var(--text-soft); margin-bottom:3px; }
@@ -869,6 +878,14 @@
           <div id="authAutoDateHint" class="date-auto-hint" style="display:none;"></div>
         </div>
       </div>
+      <div class="authorization-extension" id="authExtensionWrap" style="display:none;">
+        <div class="auth-extension-head">
+          <div>授權延長</div>
+          <button type="button" id="btnAddAuthExtension" class="auth-extension-add">＋ 新增延長</button>
+        </div>
+        <div class="auth-extension-note">廠商延長授權時，可記錄延長期間與額外費用；最終授權截止日會自動往後計算。</div>
+        <div id="authExtensionList"></div>
+      </div>
       <div class="field-label">合作項目</div>
       <div class="plat-toggles" id="typeToggles">
         <button type="button" class="type-chip" data-type="保健品">保健品</button>
@@ -1029,6 +1046,7 @@
   let selectedTypes = [];
   let selectedModes = [];
   let editingId = null;
+  let authorizationExtensions = [];
   let currentUser = null;
   let casesRef = null;
   let expandedStages = new Set();
@@ -1529,14 +1547,75 @@
     hint.style.display='block';
   }
 
+  function getAuthExtensionBaseDate(index){
+    if(index === 0) return document.getElementById('inputAuthDate')?.value || '';
+    return authorizationExtensions[index - 1]?.endDate || '';
+  }
+
+  function syncAuthExtensionRow(index){
+    const row=authorizationExtensions[index]; if(!row) return;
+    const period=row.period || '';
+    if(period === 'unlimited'){ row.endDate=null; return; }
+    if(period === 'custom') return;
+    const months={'1m':1,'3m':3,'6m':6,'12m':12}[period];
+    const base=getAuthExtensionBaseDate(index);
+    row.endDate=base && months ? addMonthsToDate(base,months) : null;
+  }
+
+  function renderAuthorizationExtensions(){
+    const wrap=document.getElementById('authExtensionWrap');
+    const list=document.getElementById('authExtensionList');
+    if(!wrap || !list) return;
+    const anyAuth=document.querySelectorAll('#authToggles .auth-chip.selected').length>0;
+    wrap.style.display=(editingId && anyAuth) ? 'block' : 'none';
+    list.innerHTML=authorizationExtensions.map((row,index)=>{
+      const custom=row.period==='custom';
+      return `<div class="auth-extension-row">
+        <div><label>延長期間</label><select onchange="changeAuthExtensionPeriod(${index},this.value)">
+          <option value="">請選擇</option><option value="1m" ${row.period==='1m'?'selected':''}>1 個月</option><option value="3m" ${row.period==='3m'?'selected':''}>3 個月</option><option value="6m" ${row.period==='6m'?'selected':''}>6 個月</option><option value="12m" ${row.period==='12m'?'selected':''}>12 個月</option><option value="custom" ${custom?'selected':''}>自訂截止日</option>
+        </select></div>
+        <div><label>延長費用</label><input type="number" min="0" step="1" value="${row.fee ?? ''}" onchange="changeAuthExtensionFee(${index},this.value)" placeholder="NT$"></div>
+        <div><label>${custom?'延長後截止日':'延長後截止日'}</label><input type="date" value="${row.endDate || ''}" ${custom?'':'readonly'} onchange="changeAuthExtensionDate(${index},this.value)"></div>
+        <button type="button" class="auth-extension-remove" onclick="removeAuthExtension(${index});event.stopPropagation();">刪除</button>
+      </div>`;
+    }).join('');
+    const total=authorizationExtensions.reduce((sum,r)=>sum+(Number(r.fee)||0),0);
+    if(authorizationExtensions.length){
+      list.insertAdjacentHTML('beforeend',`<div class="auth-extension-summary">授權延長總費用：NT$ ${total.toLocaleString()}</div>`);
+    }
+  }
+
+  function changeAuthExtensionPeriod(index,value){
+    authorizationExtensions[index].period=value;
+    if(value==='custom'){ authorizationExtensions[index].endDate=authorizationExtensions[index].endDate || getAuthExtensionBaseDate(index) || null; }
+    else { syncAuthExtensionRow(index); }
+    renderAuthorizationExtensions();
+  }
+  function changeAuthExtensionFee(index,value){ authorizationExtensions[index].fee=value===''?null:Number(value); renderAuthorizationExtensions(); }
+  function changeAuthExtensionDate(index,value){ authorizationExtensions[index].endDate=value||null; renderAuthorizationExtensions(); }
+  function removeAuthExtension(index){ authorizationExtensions.splice(index,1); renderAuthorizationExtensions(); }
+  function addAuthExtension(){
+    if(!editingId) return;
+    const base=authorizationExtensions.length ? authorizationExtensions[authorizationExtensions.length-1].endDate : document.getElementById('inputAuthDate').value;
+    if(!base){ alert('請先設定原授權截止日，再新增授權延長。'); return; }
+    authorizationExtensions.push({period:'3m',fee:null,endDate:addMonthsToDate(base,3)});
+    renderAuthorizationExtensions();
+  }
+  window.changeAuthExtensionPeriod=changeAuthExtensionPeriod;
+  window.changeAuthExtensionFee=changeAuthExtensionFee;
+  window.changeAuthExtensionDate=changeAuthExtensionDate;
+  window.removeAuthExtension=removeAuthExtension;
+
   function resetForm() {
     editingId = null;
+    authorizationExtensions = [];
     document.getElementById('addTitle').textContent = '新增案件';
     document.getElementById('btnAdd').textContent = '加入合作總覽';
     document.getElementById('btnCancelEdit').style.display = 'none';
     document.getElementById('scriptProvidedDateWrap').classList.remove('show');
     document.getElementById('draftProvidedDateWrap').classList.remove('show');
     document.getElementById('paidDateWrap').classList.remove('show');
+    renderAuthorizationExtensions();
 
     document.getElementById('inputBrand').value = '';
     document.getElementById('inputProduct').value = '';
@@ -1717,7 +1796,7 @@
     if(editingId){
       await update(ref(db, `users/${currentUser.uid}/cases/` + editingId), {
         brand, platforms, types, modes, product, fee, dates, hasNonCompete, nonCompetePeriod, nonCompeteDate,
-        authTypes, authPeriod, authDate, commissionRate, paidDate
+        authTypes, authPeriod, authDate, authorizationExtensions, commissionRate, paidDate
       });
     }else{
       const newId = uid();
@@ -1725,7 +1804,7 @@
       await set(ref(db, `users/${currentUser.uid}/cases/` + newId), {
         caseNo,
         brand, platforms, types, modes, product, fee, dates, hasNonCompete, nonCompetePeriod, nonCompeteDate,
-        authTypes, authPeriod, authDate, commissionRate, paidDate,
+        authTypes, authPeriod, authDate, authorizationExtensions, commissionRate, paidDate,
         salesAmount: null,
         stage: '製作中',
         createdAt: Date.now()
@@ -1777,7 +1856,8 @@
     document.getElementById('authDateWrap').classList.toggle('show', auths.length > 0);
     if(!auths.length){ document.getElementById('inputAuthPeriod').value=''; document.getElementById('inputAuthDate').value=''; }
     syncAuthorizationDate();
-    syncAuthorizationDate();
+    authorizationExtensions = Array.isArray(c.authorizationExtensions) ? c.authorizationExtensions.map(x => ({period:x.period || '', fee:x.fee ?? null, endDate:x.endDate || null})) : [];
+    renderAuthorizationExtensions();
 
     selectedTypes = [...(c.types || [])];
     document.querySelectorAll('#typeToggles .type-chip').forEach(b => {
@@ -1913,12 +1993,20 @@
   window.updatePaidDate = updatePaidDate;
   window.deleteCase = deleteCase;
 
+  function getAuthorizationExtensionFee(c){
+    return (c.authorizationExtensions || []).reduce((sum, item) => {
+      return sum + (Number(item && item.fee) || 0);
+    }, 0);
+  }
+
   function getEffectiveFee(c){
-    let total = c.fee || 0;
+    // 案件總收入 = 原合作費 + 團購／分潤收入 + 授權延長收入
+    let total = Number(c.fee) || 0;
     const isComm = c.modes && (c.modes.includes('團購') || c.modes.includes('分潤'));
     if(isComm && c.commissionRate != null && c.salesAmount != null){
-      total += Math.round(c.salesAmount * (c.commissionRate / 100));
+      total += Math.round(Number(c.salesAmount) * (Number(c.commissionRate) / 100));
     }
+    total += getAuthorizationExtensionFee(c);
     return total;
   }
 
@@ -2134,6 +2222,7 @@
           + '<div class="closed-item-fee">'
           + '<span>實收金額</span>'
           + '<strong>' + fmtMoney(getEffectiveFee(c)) + '</strong>'
+          + (getAuthorizationExtensionFee(c) > 0 ? '<small style="font-size:10px;color:var(--text-soft);">含授權延長 ' + fmtMoney(getAuthorizationExtensionFee(c)) + '</small>' : '')
           + '</div>'
           + '</div>';
       }).join('');
@@ -2264,12 +2353,15 @@
               + salesInputHtml
               + paidDateInputHtml
               + '<div class="note-row">'
-              + '<span class="note-fee">' + fmtMoney(effectiveFee) + (isComm && c.salesAmount != null ? ' <small style="font-weight:normal;opacity:0.8;">(含分潤)</small>' : '') + '</span>'
+              + '<span class="note-fee">' + fmtMoney(effectiveFee)
+              + (isComm && c.salesAmount != null ? ' <small style="font-weight:normal;opacity:0.8;">(含分潤)</small>' : '')
+              + (getAuthorizationExtensionFee(c) > 0 ? ' <small style="font-weight:normal;opacity:0.8;">(含授權延長)</small>' : '')
+              + '</span>'
               + (overdue ? '<span class="note-due overdue">逾期</span>' : '<span></span>')
               + '</div>'
               + (dateChips ? '<div class="note-dates">' + dateChips + '</div>' : '')
               + (c.hasNonCompete ? '<div class="note-dates auth-note-date">競業截止日：' + fmtDue(c.nonCompeteDate) + '</div>' : '')
-              + (c.authTypes && c.authTypes.length ? '<div class="note-dates auth-note-date">' + c.authTypes.join('／') + '授權至 ' + fmtDue(c.authDate) + '</div>' : '')
+              + (c.authTypes && c.authTypes.length ? '<div class="note-dates auth-note-date">' + c.authTypes.join('／') + '授權截止日：' + (c.authorizationExtensions && c.authorizationExtensions.length ? fmtDue(c.authorizationExtensions[c.authorizationExtensions.length-1].endDate || c.authDate) : (c.authDate ? fmtDue(c.authDate) : '無期限')) + ((c.authorizationExtensions && c.authorizationExtensions.length) ? '｜延長費 NT$' + c.authorizationExtensions.reduce((sum,r)=>sum+(Number(r.fee)||0),0).toLocaleString() : '') + '</div>' : '')
               + taskDateInputHtml
               + '<div class="note-actions">'
               + (c.stage !== '製作中' ? '<button class="note-prev-btn" onclick="event.stopPropagation(); previousStage(\'' + c.id + '\')">← 回上一階段</button>' : '')
@@ -2328,12 +2420,14 @@
     chip.classList.toggle('selected');
     const anySelected = document.querySelectorAll('#authToggles .auth-chip.selected').length > 0;
     document.getElementById('authDateWrap').classList.toggle('show', anySelected);
+    renderAuthorizationExtensions();
     if(!anySelected){
       document.getElementById('inputAuthDate').value = '';
       document.getElementById('addErr').style.display = 'none';
     }
   });
 
+  document.getElementById('btnAddAuthExtension').addEventListener('click', addAuthExtension);
   document.getElementById('btnAdd').addEventListener('click', submitCase);
   document.getElementById('btnCancelEdit').addEventListener('click', resetForm);
 
@@ -2472,13 +2566,22 @@
         '競業截止日': c.nonCompeteDate || '',
         '授權類型': (c.authTypes || []).join(', '),
         '授權期間': c.authPeriod || '',
-        '授權截止日': c.authDate || ''
+        '授權截止日': c.authDate || '',
+        '授權延長次數': (c.authorizationExtensions || []).length,
+        '授權延長費用': getAuthorizationExtensionFee(c),
+        '案件總收入': getEffectiveFee(c)
       };
     });
 
     const worksheet = XLSX.utils.json_to_sheet(excelData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, '合作案件');
+    const extensionRows=[];
+    cases.forEach(c => (c.authorizationExtensions || []).forEach((r,i) => extensionRows.push({
+      '案件編號': c.caseNo || '', '延長期間': r.period || '', '延長費用': Number(r.fee)||0, '延長後截止日': r.endDate || ''
+    })));
+    const extensionSheet=XLSX.utils.json_to_sheet(extensionRows.length ? extensionRows : [{ '案件編號':'', '延長期間':'', '延長費用':'', '延長後截止日':'' }]);
+    XLSX.utils.book_append_sheet(workbook, extensionSheet, '授權延長紀錄');
 
     const today = new Date().toISOString().split('T')[0];
     XLSX.writeFile(workbook, `合作案件總覽_${today}.xlsx`);
@@ -2490,7 +2593,7 @@
       '案件編號','階段','品牌','產品','保底金額','合作平台','合作項目','合作模式',
       '分潤/團購比例(%)','總銷售金額','簽約日期','腳本截止日','腳本提供日期',
       '初稿截止日','初稿提供日期','合作日期','合作開始日','合作結束日','收款日期',
-      '是否有競業條款','競業期間','競業截止日','授權類型','授權期間','授權截止日'
+      '是否有競業條款','競業期間','競業截止日','授權類型','授權期間','授權截止日','授權延長次數','授權延長費用'
     ];
 
     const instructionRows = [[
@@ -2503,7 +2606,7 @@
     const sampleRows = [[
       '範例-請勿匯入','製作中','範例品牌','範例產品',1000,'IG','Reels','一般',
       '','','2026-08-24','2026-08-27','','2026-08-30','','2026-09-01','','',
-      '否','3m','2026-11-30','','3m','2026-11-30'
+      '否','3m','2026-11-30','','3m','2026-11-30',0,0
     ]];
 
     const blankRows = Array.from({length: 20}, () => Array(headers.length).fill(''));
@@ -2538,10 +2641,14 @@
     const wsSample = XLSX.utils.aoa_to_sheet([headers, ...sampleRows]);
     wsSample['!cols'] = headers.map(h => ({ wch: Math.max(12, Math.min(24, h.length + 4)) }));
 
+    const extensionHeaders=['案件編號','延長期間','延長費用','延長後截止日'];
+    const wsExtension=XLSX.utils.aoa_to_sheet([extensionHeaders]);
+    wsExtension['!cols']=extensionHeaders.map(h=>({wch:18}));
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, wsData, '案件資料');
     XLSX.utils.book_append_sheet(workbook, wsGuide, '填寫說明');
     XLSX.utils.book_append_sheet(workbook, wsSample, '範例資料');
+    XLSX.utils.book_append_sheet(workbook, wsExtension, '授權延長紀錄');
 
     XLSX.writeFile(workbook, '合作案件_Excel匯入範本.xlsx');
   });
@@ -2629,6 +2736,26 @@
         const worksheet = workbook.Sheets[dataSheetName];
         const rows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
 
+        // 讀取「授權延長紀錄」工作表，每個案件可有多筆延長紀錄。
+        const extensionMap = {};
+        if (workbook.Sheets['授權延長紀錄']) {
+          XLSX.utils.sheet_to_json(workbook.Sheets['授權延長紀錄'], { defval: '' }).forEach(r => {
+            const no = String(r['案件編號'] || '').trim();
+            if (!no) return;
+            const periodText = String(r['延長期間'] || '').trim();
+            const periodMap = {
+              '1個月':'1m','3個月':'3m','6個月':'6m','12個月':'12m',
+              '1 個月':'1m','3 個月':'3m','6 個月':'6m','12 個月':'12m',
+              '自訂截止日':'custom'
+            };
+            (extensionMap[no] ||= []).push({
+              period: periodMap[periodText] || periodText || '',
+              fee: r['延長費用'] === '' ? null : (Number(r['延長費用']) || 0),
+              endDate: normalizeExcelDate(r['延長後截止日'])
+            });
+          });
+        }
+
         if (rows.length === 0) {
           alert('匯入的檔案無資料！');
           return;
@@ -2699,6 +2826,7 @@
             authTypes: row['授權類型'] ? String(row['授權類型']).split(',').map(s => s.trim()) : [],
             authPeriod: ({'1個月':'1m','3個月':'3m','6個月':'6m','12個月':'12m','1 個月':'1m','3 個月':'3m','6 個月':'6m','12 個月':'12m','無期限':'unlimited','自訂截止日':'custom'}[String(row['授權期間'] || '').trim()] || row['授權期間'] || null),
             authDate: normalizeExcelDate(row['授權截止日']),
+            authorizationExtensions: extensionMap[String(row['案件編號'] || caseNo).trim()] || [],
             paidDate: normalizeExcelDate(row['收款日期']),
             stage: row['階段'] || '製作中',
             createdAt: Date.now()
