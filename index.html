@@ -100,6 +100,8 @@
   .date-field label{ display:block; font-size:11px; color: var(--text-soft); margin-bottom:3px; }
   .date-field input{ width:100%; }
   /* 新增案件時隱藏實際發生日期；編輯案件時由 JS 加上 .show 顯示 */
+  .date-auto-hint{font-size:11px;color:#dfe4df;margin-top:6px;font-weight:700;}
+  #inputAuthPeriod{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:6px;background:#fffaf0;color:#20241f;padding:6px 8px;font-size:12px;}
   .post-create-date{ display:none; }
   .post-create-date.show{ display:block; }
   .noncompete-row{ grid-column: 1 / -1; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
@@ -155,6 +157,7 @@
   .note-due{ font-family:'IBM Plex Mono', monospace; opacity:0.75; }
   .note-due.overdue{ color: #B23A2E; font-weight:600; }
   .note-dates{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; opacity:0.7; margin-bottom:8px; line-height:1.6; }
+  .auth-note-date{color:#3F4742;opacity:1;font-weight:700;}
 
   .sales-input-wrap{
     background: rgba(255,255,255,0.4); border-radius: 6px; padding: 6px 8px; margin: 8px 0;
@@ -732,6 +735,7 @@
       <span class="user-name" id="userName"></span>
       <button class="btn-account" id="btnExportExcel">匯出 Excel</button>
       <button class="btn-account" id="btnImportExcel">匯入 Excel</button>
+      <button class="btn-account" id="btnDownloadExcelTemplate">下載 Excel 範本</button>
       <input type="file" id="fileImportExcel" accept=".xlsx, .xls, .csv" style="display:none;" />
       <button class="btn-account" id="btnViewTrash">已刪除案件</button>
       <button class="btn-account" id="btnAccountSettings">帳號設定</button>
@@ -831,8 +835,14 @@
           有競業條款
         </label>
         <div class="noncompete-date" id="nonCompeteDateWrap">
-          <label for="inputNonCompeteDate">競業截止日</label>
-          <input type="date" id="inputNonCompeteDate">
+          <label for="inputNonCompetePeriod">競業期間</label>
+          <select id="inputNonCompetePeriod">
+            <option value="">請選擇</option><option value="1m">1 個月</option><option value="3m">3 個月</option><option value="6m">6 個月</option><option value="12m">12 個月</option><option value="unlimited">無期限</option><option value="custom">自訂截止日</option>
+          </select>
+          <div id="nonCompeteCustomDateWrap" style="display:none; margin-top:6px;">
+            <label for="inputNonCompeteDate">競業截止日</label><input type="date" id="inputNonCompeteDate">
+          </div>
+          <div id="nonCompeteAutoDateHint" class="date-auto-hint" style="display:none;"></div>
         </div>
       </div>
       <div class="field-label">授權</div>
@@ -842,8 +852,21 @@
           <button type="button" class="auth-chip" data-auth="素材">素材授權</button>
         </div>
         <div class="noncompete-date" id="authDateWrap">
-          <label for="inputAuthDate">授權截止日</label>
-          <input type="date" id="inputAuthDate">
+          <label for="inputAuthPeriod">授權期間</label>
+          <select id="inputAuthPeriod">
+            <option value="">請選擇</option>
+            <option value="1m">1 個月</option>
+            <option value="3m">3 個月</option>
+            <option value="6m">6 個月</option>
+            <option value="12m">12 個月</option>
+            <option value="unlimited">無期限</option>
+            <option value="custom">自訂截止日</option>
+          </select>
+          <div id="authCustomDateWrap" style="display:none; margin-top:6px;">
+            <label for="inputAuthDate">授權截止日</label>
+            <input type="date" id="inputAuthDate">
+          </div>
+          <div id="authAutoDateHint" class="date-auto-hint" style="display:none;"></div>
         </div>
       </div>
       <div class="field-label">合作項目</div>
@@ -1452,6 +1475,60 @@
     return `${yearSuffix}-${sequence}`;
   }
 
+  function getAuthorizationBaseDate(){
+    const modes = [...selectedModes];
+    const isRange = modes.includes('團購') || modes.includes('分潤');
+    const id = isRange ? 'inputDateCollabEnd' : 'inputDateCollab';
+    return document.getElementById(id)?.value || null;
+  }
+
+  function addMonthsToDate(dateStr, months){
+    if(!dateStr) return null;
+    const d = new Date(dateStr + 'T00:00:00');
+    if(isNaN(d.getTime())) return null;
+    const originalDay = d.getDate();
+    d.setMonth(d.getMonth() + months);
+    // JS 遇到月底會自動跳月，這裡修正為目標月份最後一天。
+    if(d.getDate() !== originalDay){
+      d.setDate(0);
+    }
+    return d.toISOString().slice(0,10);
+  }
+
+  function syncNonCompeteDate(){
+    const period=document.getElementById('inputNonCompetePeriod')?.value||'';
+    const wrap=document.getElementById('nonCompeteCustomDateWrap'), hint=document.getElementById('nonCompeteAutoDateHint'), input=document.getElementById('inputNonCompeteDate');
+    if(!period){wrap.style.display='none';hint.style.display='none';input.value='';return;}
+    if(period==='custom'){wrap.style.display='block';hint.style.display='none';return;}
+    wrap.style.display='none';
+    if(period==='unlimited'){input.value='';hint.textContent='競業截止日：無期限';hint.style.display='block';return;}
+    const base=getAuthorizationBaseDate(); const months={'1m':1,'3m':3,'6m':6,'12m':12}[period]; const result=addMonthsToDate(base,months);
+    input.value=result||''; hint.textContent=result?'競業截止日：'+result:'請先填寫合作日期／合作結束日期'; hint.style.display='block';
+  }
+
+  function syncAuthorizationDate(){
+    const period = document.getElementById('inputAuthPeriod')?.value || '';
+    const customWrap = document.getElementById('authCustomDateWrap');
+    const hint = document.getElementById('authAutoDateHint');
+    const dateInput = document.getElementById('inputAuthDate');
+    if(!period){
+      customWrap.style.display='none'; hint.style.display='none'; dateInput.value=''; return;
+    }
+    if(period === 'custom'){
+      customWrap.style.display='block'; hint.style.display='none'; return;
+    }
+    customWrap.style.display='none';
+    if(period === 'unlimited'){
+      dateInput.value=''; hint.textContent='授權截止日：無期限'; hint.style.display='block'; return;
+    }
+    const base=getAuthorizationBaseDate();
+    const months={ '1m':1, '3m':3, '6m':6, '12m':12 }[period];
+    const result=addMonthsToDate(base, months);
+    dateInput.value=result || '';
+    hint.textContent=result ? '授權截止日：' + result : '請先填寫合作日期／合作結束日期';
+    hint.style.display='block';
+  }
+
   function resetForm() {
     editingId = null;
     document.getElementById('addTitle').textContent = '新增案件';
@@ -1474,9 +1551,14 @@
     document.getElementById('inputDateCollabEnd').value = '';
     document.getElementById('inputPaidDate').value = '';
     document.getElementById('inputHasNonCompete').checked = false;
+    document.getElementById('inputNonCompetePeriod').value = '';
     document.getElementById('inputNonCompeteDate').value = '';
     document.getElementById('nonCompeteDateWrap').classList.remove('show');
+    syncNonCompeteDate();
     document.getElementById('inputAuthDate').value = '';
+    document.getElementById('inputAuthPeriod').value = '';
+    document.getElementById('authCustomDateWrap').style.display = 'none';
+    document.getElementById('authAutoDateHint').style.display = 'none';
     document.getElementById('authDateWrap').classList.remove('show');
     document.querySelectorAll('#authToggles .auth-chip').forEach(b => b.classList.remove('selected'));
     document.getElementById('inputCommissionRate').value = '';
@@ -1502,6 +1584,53 @@
     document.getElementById('rangeCollabEndWrap').style.display = isComm ? 'block' : 'none';
   }
 
+  function getCurrentCooperationCheckDate(){
+    const isRange = selectedModes.includes('團購') || selectedModes.includes('分潤');
+    const id = isRange ? 'inputDateCollabStart' : 'inputDateCollab';
+    return document.getElementById(id)?.value || null;
+  }
+
+  function getCaseCooperationCheckDate(c){
+    const modes = c.modes || [];
+    const isRange = modes.includes('團購') || modes.includes('分潤');
+    const d = c.dates || {};
+    // 競業期間的起算點與目前競業自動計算規則一致：
+    // 一般合作使用合作日期；團購／分潤使用合作結束日期。
+    return isRange ? (d.collabEnd || d.collabStart || d.collab || null) : (d.collab || null);
+  }
+
+  function findNonCompeteConflicts(newTypes, newDate, excludeId = null){
+    if(!newDate || !newTypes.length) return [];
+    const target = new Date(newDate + 'T00:00:00');
+    if(isNaN(target.getTime())) return [];
+
+    return cases.filter(c => {
+      if(excludeId && c.id === excludeId) return false;
+      if(!c.hasNonCompete || !c.nonCompeteDate) return false;
+      const existingTypes = c.types || [];
+      if(!existingTypes.some(t => newTypes.includes(t))) return false;
+
+      const startStr = getCaseCooperationCheckDate(c);
+      const endStr = c.nonCompeteDate;
+      if(!startStr || !endStr) return false;
+      const start = new Date(startStr + 'T00:00:00');
+      const end = new Date(endStr + 'T00:00:00');
+      if(isNaN(start.getTime()) || isNaN(end.getTime())) return false;
+
+      return target >= start && target <= end;
+    });
+  }
+
+  function buildNonCompeteWarning(conflicts, newDate, newTypes){
+    const typeNames = [...new Set(newTypes)];
+    const lines = conflicts.slice(0, 5).map(c => {
+      const matched = (c.types || []).filter(t => typeNames.includes(t)).join('、');
+      return `• ${c.caseNo || '未編號案件'} ${c.brand || ''}｜${matched || '相同合作項目'}｜競業截止 ${c.nonCompeteDate}`;
+    });
+    const more = conflicts.length > 5 ? `\n另有 ${conflicts.length - 5} 筆符合條件的案件。` : '';
+    return `⚠️ 競業期間提醒\n\n本次合作日期 ${newDate} 落在既有案件的競業期間內。\n相同合作項目：${typeNames.join('、')}\n\n${lines.join('\n')}${more}\n\n請確認本次合作是否與競業條款衝突。\n若你已確認沒有衝突，按「確定」即可建立新案件。`;
+  }
+
   async function submitCase(){
     if(!currentUser) return;
     const brandEl = document.getElementById('inputBrand');
@@ -1515,17 +1644,30 @@
       return;
     }
     const hasNonCompete = document.getElementById('inputHasNonCompete').checked;
+    const nonCompetePeriod = document.getElementById('inputNonCompetePeriod').value || null;
+    syncNonCompeteDate();
     const nonCompeteDate = document.getElementById('inputNonCompeteDate').value || null;
-    if(hasNonCompete && !nonCompeteDate){
-      errEl.textContent = '已勾選競業條款，請填寫競業截止日';
+    if(hasNonCompete && !nonCompetePeriod){
+      errEl.textContent = '已勾選競業條款，請選擇競業期間';
       errEl.style.display = 'block';
-      document.getElementById('inputNonCompeteDate').focus();
+      document.getElementById('inputNonCompetePeriod').focus();
       return;
     }
+    if(hasNonCompete && nonCompetePeriod === 'custom' && !nonCompeteDate){
+      errEl.textContent = '自訂競業期間請填寫競業截止日'; errEl.style.display='block'; document.getElementById('inputNonCompeteDate').focus(); return;
+    }
     const authTypes = Array.from(document.querySelectorAll('#authToggles .auth-chip.selected')).map(b => b.dataset.auth);
+    const authPeriod = document.getElementById('inputAuthPeriod').value || null;
+    syncAuthorizationDate();
     const authDate = document.getElementById('inputAuthDate').value || null;
-    if(authTypes.length && !authDate){
-      errEl.textContent = '已選擇授權項目，請填寫授權截止日';
+    if(authTypes.length && !authPeriod){
+      errEl.textContent = '已選擇授權項目，請選擇授權期間';
+      errEl.style.display = 'block';
+      document.getElementById('inputAuthPeriod').focus();
+      return;
+    }
+    if(authTypes.length && authPeriod === 'custom' && !authDate){
+      errEl.textContent = '自訂授權期間請填寫授權截止日';
       errEl.style.display = 'block';
       document.getElementById('inputAuthDate').focus();
       return;
@@ -1545,6 +1687,19 @@
     const types = selectedTypes.length ? [...selectedTypes] : ['其他'];
     const modes = [...selectedModes];
     const product = document.getElementById('inputProduct').value.trim();
+
+    // 建立案件前檢查「相同合作項目」是否仍在既有案件的競業期間。
+    // 使用者確認後仍可建立，不會強制阻擋。
+    const cooperationCheckDate = getCurrentCooperationCheckDate();
+    const conflicts = findNonCompeteConflicts(types, cooperationCheckDate, editingId);
+    if(conflicts.length){
+      const confirmed = window.confirm(buildNonCompeteWarning(conflicts, cooperationCheckDate, types));
+      if(!confirmed){
+        errEl.textContent = '已取消建立案件，請確認競業期間後再試。';
+        errEl.style.display = 'block';
+        return;
+      }
+    }
     const fee = Number(document.getElementById('inputFee').value) || 0;
 
     const dates = {
@@ -1561,16 +1716,16 @@
 
     if(editingId){
       await update(ref(db, `users/${currentUser.uid}/cases/` + editingId), {
-        brand, platforms, types, modes, product, fee, dates, hasNonCompete, nonCompeteDate,
-        authTypes, authDate, commissionRate, paidDate
+        brand, platforms, types, modes, product, fee, dates, hasNonCompete, nonCompetePeriod, nonCompeteDate,
+        authTypes, authPeriod, authDate, commissionRate, paidDate
       });
     }else{
       const newId = uid();
       const caseNo = await generateCaseNo(dates);
       await set(ref(db, `users/${currentUser.uid}/cases/` + newId), {
         caseNo,
-        brand, platforms, types, modes, product, fee, dates, hasNonCompete, nonCompeteDate,
-        authTypes, authDate, commissionRate, paidDate,
+        brand, platforms, types, modes, product, fee, dates, hasNonCompete, nonCompetePeriod, nonCompeteDate,
+        authTypes, authPeriod, authDate, commissionRate, paidDate,
         salesAmount: null,
         stage: '製作中',
         createdAt: Date.now()
@@ -1608,15 +1763,21 @@
     document.getElementById('inputPaidDate').value = c.paidDate || '';
 
     document.getElementById('inputHasNonCompete').checked = !!c.hasNonCompete;
+    document.getElementById('inputNonCompetePeriod').value = c.nonCompetePeriod || '';
     document.getElementById('inputNonCompeteDate').value = c.nonCompeteDate || '';
     document.getElementById('nonCompeteDateWrap').classList.toggle('show', !!c.hasNonCompete);
+    syncNonCompeteDate();
 
     const auths = c.authTypes || [];
     document.querySelectorAll('#authToggles .auth-chip').forEach(b => {
       b.classList.toggle('selected', auths.includes(b.dataset.auth));
     });
     document.getElementById('inputAuthDate').value = c.authDate || '';
+    document.getElementById('inputAuthPeriod').value = c.authPeriod || '';
     document.getElementById('authDateWrap').classList.toggle('show', auths.length > 0);
+    if(!auths.length){ document.getElementById('inputAuthPeriod').value=''; document.getElementById('inputAuthDate').value=''; }
+    syncAuthorizationDate();
+    syncAuthorizationDate();
 
     selectedTypes = [...(c.types || [])];
     document.querySelectorAll('#typeToggles .type-chip').forEach(b => {
@@ -2107,8 +2268,8 @@
               + (overdue ? '<span class="note-due overdue">逾期</span>' : '<span></span>')
               + '</div>'
               + (dateChips ? '<div class="note-dates">' + dateChips + '</div>' : '')
-              + (c.hasNonCompete ? '<div class="note-dates">競業至 ' + fmtDue(c.nonCompeteDate) + '</div>' : '')
-              + (c.authTypes && c.authTypes.length ? '<div class="note-dates">' + c.authTypes.join('／') + '授權至 ' + fmtDue(c.authDate) + '</div>' : '')
+              + (c.hasNonCompete ? '<div class="note-dates auth-note-date">競業截止日：' + fmtDue(c.nonCompeteDate) + '</div>' : '')
+              + (c.authTypes && c.authTypes.length ? '<div class="note-dates auth-note-date">' + c.authTypes.join('／') + '授權至 ' + fmtDue(c.authDate) + '</div>' : '')
               + taskDateInputHtml
               + '<div class="note-actions">'
               + (c.stage !== '製作中' ? '<button class="note-prev-btn" onclick="event.stopPropagation(); previousStage(\'' + c.id + '\')">← 回上一階段</button>' : '')
@@ -2152,9 +2313,14 @@
     document.getElementById('nonCompeteDateWrap').classList.toggle('show', e.target.checked);
     if(!e.target.checked){
       document.getElementById('inputNonCompeteDate').value = '';
+      document.getElementById('inputNonCompetePeriod').value = '';
+      syncNonCompeteDate();
       document.getElementById('addErr').style.display = 'none';
     }
   });
+
+  document.getElementById('inputNonCompetePeriod').addEventListener('change', syncNonCompeteDate);
+  ['inputDateCollab','inputDateCollabEnd'].forEach(id => document.getElementById(id)?.addEventListener('change', () => { syncNonCompeteDate(); syncAuthorizationDate(); }));
 
   document.getElementById('authToggles').addEventListener('click', e => {
     const chip = e.target.closest('.auth-chip');
@@ -2207,7 +2373,13 @@
       document.getElementById('addErr').style.display = 'none';
     }
     toggleCollabDateUI();
+    syncAuthorizationDate();
   });
+
+  ['inputDateCollab','inputDateCollabStart','inputDateCollabEnd'].forEach(id => {
+    document.getElementById(id)?.addEventListener('change', syncAuthorizationDate);
+  });
+  document.getElementById('inputAuthPeriod').addEventListener('change', syncAuthorizationDate);
 
   document.getElementById('platToggles').addEventListener('click', e => {
     const chip = e.target.closest('.plat-chip');
@@ -2296,8 +2468,10 @@
         '合作結束日': d.collabEnd || '',
         '收款日期': c.paidDate || '',
         '是否有競業條款': c.hasNonCompete ? '是' : '否',
+        '競業期間': c.nonCompetePeriod || '',
         '競業截止日': c.nonCompeteDate || '',
         '授權類型': (c.authTypes || []).join(', '),
+        '授權期間': c.authPeriod || '',
         '授權截止日': c.authDate || ''
       };
     });
@@ -2308,6 +2482,68 @@
 
     const today = new Date().toISOString().split('T')[0];
     XLSX.writeFile(workbook, `合作案件總覽_${today}.xlsx`);
+  });
+
+  // ---------- Excel 匯入範本 ----------
+  document.getElementById('btnDownloadExcelTemplate').addEventListener('click', () => {
+    const headers = [
+      '案件編號','階段','品牌','產品','保底金額','合作平台','合作項目','合作模式',
+      '分潤/團購比例(%)','總銷售金額','簽約日期','腳本截止日','腳本提供日期',
+      '初稿截止日','初稿提供日期','合作日期','合作開始日','合作結束日','收款日期',
+      '是否有競業條款','競業期間','競業截止日','授權類型','授權期間','授權截止日'
+    ];
+
+    const instructionRows = [[
+      '選填：留空會自動產生','選填：預設製作中','必填','選填','數字','多個平台請用逗號分隔',
+      '多個項目請用逗號分隔','一般／團購／分潤等','數字，例如 10','團購／分潤填寫','日期',
+      '日期','日期','日期','日期','一般合作使用','團購／分潤使用','團購／分潤使用','日期',
+      '是／否','1／3／6／12個月、無期限或自訂','日期','多個授權類型請用逗號分隔','1／3／6／12個月、無期限或自訂','日期'
+    ]];
+
+    const sampleRows = [[
+      '範例-請勿匯入','製作中','範例品牌','範例產品',1000,'IG','Reels','一般',
+      '','','2026-08-24','2026-08-27','','2026-08-30','','2026-09-01','','',
+      '否','3m','2026-11-30','','3m','2026-11-30'
+    ]];
+
+    const blankRows = Array.from({length: 20}, () => Array(headers.length).fill(''));
+    const dataRows = [headers, ...blankRows];
+    const wsData = XLSX.utils.aoa_to_sheet(dataRows);
+    wsData['!cols'] = headers.map(h => ({ wch: Math.max(12, Math.min(24, h.length + 4)) }));
+    wsData['!autofilter'] = { ref: `A1:${XLSX.utils.encode_col(headers.length - 1)}${dataRows.length}` };
+
+    // 讓日期欄位以 Excel 日期格式呈現，使用者可直接輸入日期。
+    const dateHeaders = ['簽約日期','腳本截止日','腳本提供日期','初稿截止日','初稿提供日期','合作日期','合作開始日','合作結束日','收款日期','競業截止日','授權截止日'];
+    dateHeaders.forEach(header => {
+      const col = headers.indexOf(header);
+      for(let r = 2; r <= dataRows.length; r++) {
+        const cellRef = XLSX.utils.encode_cell({ c: col, r });
+        wsData[cellRef] = wsData[cellRef] || { t: 's', v: '' };
+        wsData[cellRef].z = 'yyyy/mm/dd';
+      }
+    });
+
+    const wsGuide = XLSX.utils.aoa_to_sheet([
+      ['合作案件 Excel 匯入範本｜使用說明'],
+      ['請在「案件資料」工作表填寫資料後匯入。'],
+      ['不需要刪除範例資料，因為「案件資料」工作表只有欄位名稱與空白資料列。'],
+      ['「範例資料」工作表僅供參考，匯入時系統只讀取第一個工作表「案件資料」。'],
+      ['日期欄位可直接使用 Excel 日期格式，例如 2026/08/24。'],
+      ['一般合作填「合作日期」；團購／分潤填「合作開始日」與「合作結束日」。'],
+      ['腳本提供日期、初稿提供日期、收款日期可在案件建立後維護。'],
+      ['合作平台可填 IG、FB、TikTok、YouTube、Threads 等，多個平台請用逗號分隔。']
+    ]);
+    wsGuide['!cols'] = [{ wch: 90 }];
+
+    const wsSample = XLSX.utils.aoa_to_sheet([headers, ...sampleRows]);
+    wsSample['!cols'] = headers.map(h => ({ wch: Math.max(12, Math.min(24, h.length + 4)) }));
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, wsData, '案件資料');
+    XLSX.utils.book_append_sheet(workbook, wsGuide, '填寫說明');
+    XLSX.utils.book_append_sheet(workbook, wsSample, '範例資料');
+
+    XLSX.writeFile(workbook, '合作案件_Excel匯入範本.xlsx');
   });
 
   // ---------- Excel 日期解析 ----------
@@ -2389,8 +2625,8 @@
       try {
         const data = new Uint8Array(evt.target.result);
         const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-        const firstSheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[firstSheetName];
+        const dataSheetName = workbook.SheetNames.includes('案件資料') ? '案件資料' : workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[dataSheetName];
         const rows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
 
         if (rows.length === 0) {
@@ -2458,8 +2694,10 @@
             salesAmount: row['總銷售金額'] !== undefined && row['總銷售金額'] !== '' ? Number(row['總銷售金額']) : null,
             dates,
             hasNonCompete: row['是否有競業條款'] === '是',
+            nonCompetePeriod: ({'1個月':'1m','3個月':'3m','6個月':'6m','12個月':'12m','1 個月':'1m','3 個月':'3m','6 個月':'6m','12 個月':'12m','無期限':'unlimited','自訂截止日':'custom'}[String(row['競業期間'] || '').trim()] || row['競業期間'] || null),
             nonCompeteDate: normalizeExcelDate(row['競業截止日']),
             authTypes: row['授權類型'] ? String(row['授權類型']).split(',').map(s => s.trim()) : [],
+            authPeriod: ({'1個月':'1m','3個月':'3m','6個月':'6m','12個月':'12m','1 個月':'1m','3 個月':'3m','6 個月':'6m','12 個月':'12m','無期限':'unlimited','自訂截止日':'custom'}[String(row['授權期間'] || '').trim()] || row['授權期間'] || null),
             authDate: normalizeExcelDate(row['授權截止日']),
             paidDate: normalizeExcelDate(row['收款日期']),
             stage: row['階段'] || '製作中',
