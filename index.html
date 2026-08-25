@@ -702,6 +702,90 @@
   .closed-item-fee span{font-size:10px;color:var(--text-soft);font-weight:500;}
   .closed-item-fee strong{font-size:15px;color:var(--mint);}
 </style>
+
+<style>
+  /* ===== v34 洽談頁面視覺重整 ===== */
+  #leadsView{padding-top:4px;}
+  .lead-field-group{min-width:0;}
+  .lead-field-group>label{display:block;color:#AFA7B1;font-size:10px;font-weight:600;margin:0 0 6px 2px;}
+  .lead-chip-group{display:flex;flex-wrap:wrap;gap:6px;min-height:38px;align-items:center;}
+  .lead-chip-group .plat-chip,.lead-chip-group .mode-chip{padding:7px 10px;font-size:10px;border-radius:8px;}
+  .lead-add-grid>.lead-field-group{grid-column:span 1;}
+  .lead-add-grid>.lead-field-group:has(.lead-chip-group){grid-column:span 2;}
+  .lead-page-header{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin:2px 0 22px;padding:6px 2px 0;}
+  .lead-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1.8px;color:#8E8791;margin-bottom:7px;}
+  .lead-page-header h2{margin:0;font-family:'Space Grotesk','Noto Sans TC',sans-serif;font-size:28px;letter-spacing:-.4px;color:#F3EEE9;}
+  .lead-page-header p{margin:6px 0 0;color:#9F97A3;font-size:12px;line-height:1.7;}
+  .lead-rule{padding:9px 12px;border:1px solid #403A45;border-radius:10px;background:#29252D;color:#AFA7B1;font-size:11px;white-space:nowrap;}
+  .lead-toolbar{display:flex;gap:4px;align-items:center;padding:4px;background:#29252D;border:1px solid #403A45;border-radius:12px;width:max-content;max-width:100%;margin-bottom:16px;}
+  .lead-toolbar .tab{border:0;border-radius:8px;padding:8px 13px;background:transparent;color:#928A96;font-family:'Inter','Noto Sans TC',sans-serif;font-size:11.5px;font-weight:600;transition:.16s ease;}
+  .lead-toolbar .tab:hover{color:#EDE7E2;background:#332F37;}
+  .lead-toolbar .tab.active{background:#EDE7E2;color:#27232A;border-color:transparent;box-shadow:0 2px 7px rgba(0,0,0,.16);}
+  .lead-add-card{background:#29252D;border:1px solid #403A45;border-radius:14px;padding:18px;margin-bottom:16px;box-shadow:0 10px 28px rgba(0,0,0,.12);}
+  .lead-add-card .add-title{font-size:14px;color:#F0EAE6;font-weight:700;margin:0 0 2px;}
+  .lead-add-card .add-title::after{content:' 先記下正在討論的合作，不需要產生正式案件編號';font-size:11px;color:#8F8792;font-weight:400;}
+  .lead-add-card.editing{border-color:#6A6170;box-shadow:0 12px 30px rgba(0,0,0,.18);}
+  .lead-add-card:not(.editing) .lead-last-contact-field{display:none;}
+  .lead-card .lead-actions .note-prev-btn{min-width:0;}
+  .lead-card .lead-actions .note-prev-btn:hover{transform:translateY(-1px);}
+  .lead-add-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:13px;}
+  .lead-add-grid input,.lead-add-grid select,.lead-add-grid textarea{background:#211E24;border:1px solid #403A45;color:#EEE8E3;border-radius:9px;padding:10px 11px;font-size:12px;transition:border-color .16s ease,box-shadow .16s ease,background .16s ease;}
+  .lead-add-grid #leadStatus{height:32px;min-height:32px;padding:5px 9px;font-size:11px;line-height:20px;align-self:start;border-radius:8px;}
+  .lead-add-grid #leadStatus + .lead-field-group{min-width:0;}
+  .lead-add-grid input::placeholder,.lead-add-grid textarea::placeholder{color:#6F6873;}
+  .lead-add-grid input:focus,.lead-add-grid select:focus,.lead-add-grid textarea:focus{outline:none;border-color:#756B77;background:#252129;box-shadow:0 0 0 3px rgba(255,255,255,.035);}
+  .lead-add-grid textarea{min-height:84px;}
+  .lead-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px;}
+  .lead-add-card > .lead-actions{justify-content:flex-end;}
+  .lead-add-card > .lead-actions .note-next-btn{flex:0 0 auto;min-width:132px;padding:9px 14px;border-radius:9px;background:#EDE7E2;color:#27232A;border:1px solid #EDE7E2;box-shadow:none;}
+  .lead-add-card > .lead-actions .note-next-btn:hover{background:#FFF;color:#27232A;transform:translateY(-1px);}
+  #leadsView .stats{gap:10px;margin:0 0 18px;}
+  #leadsView .stat{min-width:150px;background:#29252D;border:1px solid #403A45;border-radius:12px;padding:13px 15px;box-shadow:none;}
+  #leadsView .stat .l{font-size:10.5px;color:#8F8792;margin-bottom:6px;}
+  #leadsView .stat .n{font-family:'Space Grotesk',sans-serif;font-size:21px;color:#F0EAE6;}
+  #leadsView .stat:nth-child(2) .n{color:#FFD873;}
+  #leadsView .stat:nth-child(3) .n{color:#E5A18B;}
+  .lead-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start;}
+  .lead-card{position:relative;background:#29252D;border:1px solid #403A45;border-radius:14px;padding:16px;min-width:0;box-shadow:0 8px 22px rgba(0,0,0,.12);transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease;}
+  .lead-card:hover{transform:translateY(-2px);border-color:#514A57;box-shadow:0 13px 30px rgba(0,0,0,.17);}
+  .lead-card.stale{border-color:rgba(229,161,139,.52);}
+  .lead-card.closed{opacity:.82;}
+  .lead-card-topline{display:flex;justify-content:space-between;gap:8px;min-height:16px;margin-bottom:7px;}
+  .lead-updated,.lead-aging{font-family:'IBM Plex Mono',monospace;font-size:9px;color:#77707C;}
+  .lead-aging{color:#C89480;}
+  .lead-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;}
+  .lead-title-wrap{min-width:0;}
+  .lead-brand-row{display:flex;align-items:center;gap:8px;min-width:0;}
+  .lead-brand{font-family:'Space Grotesk','Noto Sans TC',sans-serif;font-size:17px;font-weight:700;color:#F2ECE7;margin:0;letter-spacing:-.15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .lead-brand-dot{width:8px;height:8px;border-radius:50%;background:#A69DAB;flex:0 0 auto;box-shadow:0 0 0 3px rgba(166,157,171,.08);}
+  .lead-brand-dot.active{background:#7FE0B4;box-shadow:0 0 0 3px rgba(127,224,180,.10);}
+  .lead-brand-dot.waiting{background:#FFD873;box-shadow:0 0 0 3px rgba(255,216,115,.10);}
+  .lead-brand-dot.lost{background:#E5A18B;box-shadow:0 0 0 3px rgba(229,161,139,.10);}
+  .lead-brand-dot.no-deal{background:#77707C;box-shadow:0 0 0 3px rgba(119,112,124,.10);}
+  .lead-product{font-size:11.5px;color:#918A95;margin:5px 0 0;padding-left:16px;}
+  .lead-status{display:inline-flex;align-items:center;padding:5px 8px;border-radius:999px;background:#343039;border:1px solid #46404B;font-size:9.5px;font-weight:700;color:#C8C0C9;white-space:nowrap;}
+  .lead-status.active{color:#A9D8BC;background:rgba(127,224,180,.08);border-color:rgba(127,224,180,.18);}
+  .lead-status.waiting{color:#E8CF8C;background:rgba(255,216,115,.07);border-color:rgba(255,216,115,.16);}
+  .lead-status.lost{color:#E5A18B;background:rgba(229,161,139,.07);border-color:rgba(229,161,139,.18);}
+  .lead-status.no-deal{color:#8E8791;background:rgba(142,135,145,.07);border-color:#403A45;}
+  .lead-meta{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:14px 0 10px;}
+  .lead-meta div{padding:9px 10px;border-radius:9px;background:#242127;border:1px solid #38323D;font-size:10px;color:#7F7783;min-width:0;}
+  .lead-meta span{display:block;font-size:9px;color:#6F6873;margin-bottom:4px;}
+  .lead-meta strong{display:block;color:#DAD3CF;font-size:10.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .lead-note{font-size:10.5px;line-height:1.6;color:#938B96;margin:7px 0;}
+  .lead-note-box{padding:9px 10px;border-radius:9px;background:#242127;border:1px solid #38323D;white-space:pre-wrap;}
+  .lead-danger{color:#E0A08A!important;}
+  .lead-success{color:#9CC8AB!important;}
+  .lead-card .lead-actions{padding-top:11px;border-top:1px solid #37313B;}
+  .lead-card .lead-actions .note-next-btn,.lead-card .lead-actions .note-prev-btn{flex:1;min-height:34px;border-radius:8px;font-size:10.5px;padding:8px 9px;}
+  .lead-card .lead-actions .note-next-btn.next-review{background:#EDE7E2;color:#29252D;border-color:#EDE7E2;}
+  .lead-card .lead-actions .note-next-btn.next-review:hover{background:#FFF;color:#29252D;border-color:#FFF;}
+  .lead-card .lead-actions .note-prev-btn{background:#302C34;color:#AFA7B1;border:1px solid #46404B;}
+  .lead-card .lead-actions .note-prev-btn:hover{background:#38333D;color:#EDE7E2;border-color:#5A5360;}
+  .lead-empty{grid-column:1/-1;padding:48px 24px;text-align:center;color:#807884;border:1px dashed #403A45;border-radius:14px;background:#29252D;}
+  @media(max-width:900px){.lead-list{grid-template-columns:1fr}.lead-page-header{align-items:flex-start;flex-direction:column}.lead-rule{white-space:normal}.lead-add-grid{grid-template-columns:1fr 1fr;}}
+  @media(max-width:620px){.lead-add-grid{grid-template-columns:1fr}.lead-toolbar{width:100%;overflow:auto}.lead-toolbar .tab{flex:0 0 auto}.lead-meta{grid-template-columns:1fr}.lead-head{flex-direction:column}.lead-status{align-self:flex-start}.lead-page-header h2{font-size:24px;}}
+</style>
 </head>
 <body>
 
@@ -753,8 +837,79 @@
   </div>
 
   <div class="filters" id="viewTabs">
-    <button class="tab active" data-view="board">案件看板</button>
-    <button class="tab" data-view="report">結案報表</button>
+    <button class="tab active" data-view="board">📋案件看板</button>
+    <button class="tab" data-view="leads">💬洽談中</button>
+    <button class="tab" data-view="report">📊結案報表</button>
+  </div>
+
+
+  <div id="leadsView" class="app-hidden">
+    <div class="lead-page-header">
+      <div>
+        <div class="lead-eyebrow">DEAL PIPELINE</div>
+        <h2>💬洽談中</h2>
+        <p>把還在討論中的合作集中在這裡，確認合作後再轉進正式案件。</p>
+      </div>
+      <div class="lead-rule">⏳ 7～22 天可以關心，23～29 天即將失聯，30 天自動標記為廠商失聯</div>
+    </div>
+    <div class="lead-toolbar">
+      <button class="tab active" data-lead-filter="active">目前洽談</button>
+      <button class="tab" data-lead-filter="失聯">廠商失聯</button>
+      <button class="tab" data-lead-filter="不合作">確認不合作</button>
+    </div>
+    <div class="lead-add-card">
+      <p class="add-title">新增洽談</p>
+      <div class="lead-add-grid">
+        <input id="leadBrand" placeholder="品牌／廠商名稱" maxlength="50">
+        <input id="leadProduct" placeholder="合作項目／產品" maxlength="80">
+        <input id="leadFee" type="number" min="0" placeholder="預計報價 NT$">
+        <div class="lead-field-group">
+          <label>合作平台</label>
+          <div class="plat-toggles lead-chip-group" id="leadPlatformToggles">
+            <button type="button" class="plat-chip" data-lead-plat="IG">Instagram</button>
+            <button type="button" class="plat-chip" data-lead-plat="Facebook">Facebook</button>
+            <button type="button" class="plat-chip" data-lead-plat="YouTube">YouTube</button>
+            <button type="button" class="plat-chip" data-lead-plat="TikTok">TikTok</button>
+            <button type="button" class="plat-chip" data-lead-plat="Threads">Threads</button>
+            <button type="button" class="plat-chip" data-lead-plat="其他">其他平台</button>
+          </div>
+        </div>
+        <div class="lead-field-group">
+          <label>合作模式</label>
+          <div class="plat-toggles lead-chip-group" id="leadModeToggles">
+            <button type="button" class="mode-chip" data-lead-mode="圖文">圖文</button>
+            <button type="button" class="mode-chip" data-lead-mode="限時動態">限時動態</button>
+            <button type="button" class="mode-chip" data-lead-mode="短影片">短影片</button>
+            <button type="button" class="mode-chip" data-lead-mode="團購">團購</button>
+            <button type="button" class="mode-chip" data-lead-mode="串文">串文</button>
+            <button type="button" class="mode-chip" data-lead-mode="分潤">分潤</button>
+          </div>
+        </div>
+        <div class="lead-field-group">
+          <label for="leadExpectedDate">📅 預計合作日期</label>
+          <input id="leadExpectedDate" type="date">
+        </div>
+        <select id="leadStatus">
+          <option value="洽談中">洽談中</option>
+          <option value="已報價，等待回覆">已報價，等待回覆</option>
+          <option value="廠商確認中">廠商確認中</option>
+          <option value="等待合作日期確認">等待合作日期確認</option>
+          <option value="暫緩">暫緩</option>
+        </select>
+        <div class="lead-field-group lead-last-contact-field">
+          <label for="leadLastContact">📞 最後一次聯絡日期</label>
+          <input id="leadLastContact" type="date">
+        </div>
+        <textarea id="leadNotes" placeholder="洽談備註／報價條件／廠商回覆"></textarea>
+      </div>
+      <div class="lead-actions"><button class="note-prev-btn" id="btnCancelLeadEdit" type="button" style="display:none;">取消編輯</button><button class="note-next-btn next-review" id="btnAddLead">＋ 新增洽談</button></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="l">目前洽談</div><div class="n" id="leadStatActive">0</div></div>
+      <div class="stat"><div class="l">⏳ 可以關心</div><div class="n" id="leadStatFollow">0</div></div>
+      <div class="stat"><div class="l">⚠️ 即將失聯</div><div class="n" id="leadStatImminent">0</div></div>
+    </div>
+    <div id="leadList" class="lead-list"></div>
   </div>
 
   <div id="boardView">
@@ -1040,6 +1195,11 @@
   const auth = getAuth(app);
 
   let cases = [];
+  let leads = [];
+  let leadsRef = null;
+  let currentLeadFilter = 'active';
+  let leadSelectedPlatforms = ['IG'];
+  let leadSelectedModes = [];
   let currentPlat = 'all';
   let currentYear = 'all';
   let selectedPlatforms = [];
@@ -1063,6 +1223,195 @@
     { key:'已收款', dot: 'var(--mint)' }
   ];
   const BOARD_STAGES = STAGES.filter(s => s.key !== '已收款'); // 看板不顯示已收款欄位，改在結案報表呈現
+
+  // ---------- 洽談中 ----------
+  const LEAD_ACTIVE_STATUSES = ['洽談中','已報價，等待回覆','廠商確認中','等待合作日期確認','暫緩'];
+  function getLocalDateString(){
+    const d=new Date();
+    const y=d.getFullYear();
+    const m=String(d.getMonth()+1).padStart(2,'0');
+    const day=String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+  }
+
+  function clearLeadForm(){
+    ['leadBrand','leadProduct','leadFee','leadExpectedDate','leadNotes'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
+    // 新增洽談時，最後一次聯絡日期預設為今天。
+    // 這只套用在「清空表單／新增」狀態，編輯既有案件時仍會載入原本日期。
+    const lastContactEl=document.getElementById('leadLastContact');
+    if(lastContactEl) lastContactEl.value=getLocalDateString();
+    document.getElementById('leadStatus').value='洽談中';
+    leadSelectedPlatforms=[];
+    leadSelectedModes=[];
+    document.querySelectorAll('#leadPlatformToggles .plat-chip').forEach(b=>b.classList.remove('selected'));
+    document.querySelectorAll('#leadModeToggles .mode-chip').forEach(b=>b.classList.remove('selected'));
+  }
+  function leadDaysSinceContact(l){
+    // 洽談的 7/14/23/30 天判斷，以「最後一次聯絡日期」為優先。
+    // 若尚未填寫最後聯絡日期，才退回使用資料建立／最後更新時間。
+    if(l.lastContact){
+      const contactDay=new Date(l.lastContact+'T00:00:00');
+      if(!isNaN(contactDay.getTime())){
+        const today=new Date(); today.setHours(0,0,0,0);
+        contactDay.setHours(0,0,0,0);
+        return Math.max(0,Math.floor((today-contactDay)/86400000));
+      }
+    }
+    return Math.floor((Date.now() - Number(l.updatedAt || l.createdAt || Date.now())) / 86400000);
+  }
+  function leadIsActive(l){ return LEAD_ACTIVE_STATUSES.includes(l.status); }
+  async function autoMarkStaleLeads(){
+    if(!currentUser || !leads.length) return;
+    const updates={};
+    leads.forEach(l=>{
+      if(leadIsActive(l) && leadDaysSinceContact(l) >= 30){
+        updates[`users/${currentUser.uid}/leads/${l.id}/status`]='廠商失聯';
+        updates[`users/${currentUser.uid}/leads/${l.id}/lostAt`]=Date.now();
+        updates[`users/${currentUser.uid}/leads/${l.id}/updatedAt`]=Date.now();
+      }
+    });
+    if(Object.keys(updates).length) await update(ref(db), updates);
+  }
+  let editingLeadId=null;
+
+  function setLeadFormMode(editing){
+    const title=document.querySelector('#leadsView .lead-add-card .add-title');
+    const btn=document.getElementById('btnAddLead');
+    const cancel=document.getElementById('btnCancelLeadEdit');
+    const card=document.querySelector('#leadsView .lead-add-card');
+    if(card) card.classList.toggle('editing',!!editing);
+    if(title) title.textContent=editing?'編輯洽談':'新增洽談';
+    if(btn) btn.textContent=editing?'儲存修改':'＋ 新增洽談';
+    if(cancel) cancel.style.display=editing?'inline-flex':'none';
+  }
+  function cancelLeadEdit(){
+    editingLeadId=null;
+    clearLeadForm();
+    setLeadFormMode(false);
+  }
+  function startEditLead(id){
+    const l=leads.find(x=>x.id===id); if(!l) return;
+    editingLeadId=id;
+    document.getElementById('leadBrand').value=l.brand||'';
+    document.getElementById('leadProduct').value=l.product||'';
+    document.getElementById('leadFee').value=(l.fee ?? '')==='0' ? '' : (l.fee ?? '');
+    document.getElementById('leadExpectedDate').value=l.expectedDate||'';
+    document.getElementById('leadStatus').value=LEAD_ACTIVE_STATUSES.includes(l.status)?l.status:'洽談中';
+    document.getElementById('leadLastContact').value=l.lastContact||'';
+    document.getElementById('leadNotes').value=l.notes||'';
+    leadSelectedPlatforms=Array.isArray(l.platforms)?[...l.platforms]:(l.platform?[l.platform]:[]);
+    leadSelectedModes=Array.isArray(l.modes)?[...l.modes]:(l.mode?l.mode.split(/[,，\/／]/).map(x=>x.trim()).filter(Boolean):[]);
+    document.querySelectorAll('#leadPlatformToggles .plat-chip').forEach(b=>b.classList.toggle('selected',leadSelectedPlatforms.includes(b.dataset.leadPlat)));
+    document.querySelectorAll('#leadModeToggles .mode-chip').forEach(b=>b.classList.toggle('selected',leadSelectedModes.includes(b.dataset.leadMode)));
+    setLeadFormMode(true);
+    document.getElementById('leadsView').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  async function addLead(){
+    if(!currentUser) return;
+    const brand=document.getElementById('leadBrand').value.trim();
+    if(!brand){ alert('請先填寫品牌／廠商名稱'); return; }
+    const now=Date.now();
+    const payload={
+      brand,
+      product:document.getElementById('leadProduct').value.trim(),
+      fee:Number(document.getElementById('leadFee').value)||0,
+      platforms:[...leadSelectedPlatforms],
+      modes:[...leadSelectedModes],
+      expectedDate:document.getElementById('leadExpectedDate').value||null,
+      status:document.getElementById('leadStatus').value,
+      // 新增洽談即使使用者沒有手動修改，也以建立當天作為最後一次聯絡日期。
+      lastContact:document.getElementById('leadLastContact').value||getLocalDateString(),
+      notes:document.getElementById('leadNotes').value.trim()
+    };
+    if(editingLeadId){
+      await update(ref(db,`users/${currentUser.uid}/leads/${editingLeadId}`),{...payload,updatedAt:now});
+    }else{
+      const id=uid();
+      await set(ref(db,`users/${currentUser.uid}/leads/${id}`),{...payload,createdAt:now,updatedAt:now});
+    }
+    editingLeadId=null;
+    clearLeadForm();
+    setLeadFormMode(false);
+    await loadLeads();
+  }
+  async function updateLead(id, patch){
+    if(!currentUser) return;
+    await update(ref(db,`users/${currentUser.uid}/leads/${id}`),{...patch,updatedAt:Date.now()});
+    await loadLeads();
+  }
+  async function markLeadLost(id){
+    if(!confirm('確定要將這筆洽談標記為「廠商失聯」嗎？')) return;
+    await updateLead(id,{status:'廠商失聯',lostAt:Date.now()});
+  }
+  async function markLeadNoDeal(id){
+    const reason=prompt('確認不合作，原因（可留白）：','');
+    if(reason===null) return;
+    await updateLead(id,{status:'確認不合作',noDealAt:Date.now(),noDealReason:reason});
+  }
+  async function restoreLead(id){
+    await updateLead(id,{status:'洽談中',lostAt:null,noDealAt:null,noDealReason:null});
+  }
+  async function convertLead(id){
+    const l=leads.find(x=>x.id===id); if(!l || !currentUser) return;
+    if(!confirm(`確定將「${l.brand}」轉為正式案件嗎？`)) return;
+    const dates={contract:null,script:null,scriptProvided:null,draft:null,draftProvided:null,collab:l.expectedDate||null,collabStart:null,collabEnd:null};
+    const modes=Array.isArray(l.modes) ? l.modes : (l.mode ? l.mode.split(/[,，\/／]/).map(x=>x.trim()).filter(Boolean) : []);
+    const platforms=Array.isArray(l.platforms) ? l.platforms : (l.platform ? l.platform.split(/[,，\/／]/).map(x=>x.trim()).filter(Boolean) : ['IG']);
+    const types=l.product ? l.product.split(/[,，\/／]/).map(x=>x.trim()).filter(Boolean) : ['其他'];
+    const newId=uid();
+    const caseNo=await generateCaseNo(dates,modes,null);
+    await set(ref(db,`users/${currentUser.uid}/cases/${newId}`),{caseNo,brand:l.brand,product:l.product||'',fee:l.fee||0,platforms,types,modes,commissionRate:null,salesAmount:null,dates,hasNonCompete:false,nonCompetePeriod:null,nonCompeteDate:null,authTypes:[],authPeriod:null,authDate:null,authorizationExtensions:[],paidDate:null,stage:'製作中',createdAt:Date.now()});
+    await update(ref(db,`users/${currentUser.uid}/leads/${id}`),{status:'已轉正式案件',convertedAt:Date.now(),convertedCaseId:newId,updatedAt:Date.now()});
+    await loadLeads();
+    alert(`已轉為正式案件 ${caseNo}`);
+  }
+  async function loadLeads(){
+    if(!currentUser) return;
+    const snap=await get(ref(db,`users/${currentUser.uid}/leads`));
+    const data=snap.exists()?snap.val():{};
+    leads=Object.keys(data).map(id=>({id,...data[id]}));
+    await autoMarkStaleLeads();
+    if(Object.keys(data).length){
+      const snap2=await get(ref(db,`users/${currentUser.uid}/leads`));
+      const data2=snap2.exists()?snap2.val():{};
+      leads=Object.keys(data2).map(id=>({id,...data2[id]}));
+    }
+    renderLeads();
+  }
+  function renderLeads(){
+    const list=document.getElementById('leadList'); if(!list) return;
+    const today=new Date(); const todayStr=new Date(today.getTime()-today.getTimezoneOffset()*60000).toISOString().slice(0,10);
+    const active=leads.filter(leadIsActive);
+    const addCard=document.querySelector('#leadsView .lead-add-card');
+    if(addCard) addCard.style.display=(currentLeadFilter==='active')?'block':'none';
+    if(currentLeadFilter!=='active' && editingLeadId){ cancelLeadEdit(); }
+    // 提醒分成兩層即可：7～22 天「可以關心」，23～29 天「即將失聯」。
+    const followup=active.filter(l=>{const d=leadDaysSinceContact(l); return d>=7 && d<23;}).length;
+    const imminent=active.filter(l=>{const d=leadDaysSinceContact(l); return d>=23 && d<30;}).length;
+    document.getElementById('leadStatActive').textContent=active.length;
+    document.getElementById('leadStatFollow').textContent=followup;
+    document.getElementById('leadStatImminent').textContent=imminent;
+    let arr=currentLeadFilter==='active'?active:leads.filter(l=>currentLeadFilter==='失聯'?l.status==='廠商失聯':l.status==='確認不合作');
+    arr=arr.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+    if(!arr.length){ list.innerHTML='<div class="lead-empty">目前沒有資料</div>'; return; }
+    list.innerHTML=arr.map(l=>{
+      const days=leadDaysSinceContact(l);
+      const staleText=l.status==='廠商失聯' ? '⚠ 已自動／手動標記失聯' : (days>=23 ? `⚠️ 再 ${Math.max(1,30-days)} 天將自動標記為廠商失聯` : (days>=7 ? '⏳ 已超過 7 天，可以關心一下這筆洽談' : ''));
+      const followText='';
+      const editBtn=`<button class="note-prev-btn" onclick="startEditLead('${l.id}')">✏️ 編輯</button>`;
+      const action=l.status==='廠商失聯'||l.status==='確認不合作' ? `${editBtn}<button class="note-prev-btn" onclick="restoreLead('${l.id}')">↩ 恢復洽談</button>` : `${editBtn}<button class="note-next-btn next-review" onclick="convertLead('${l.id}')">✓ 轉為正式案件</button><button class="note-prev-btn" onclick="markLeadLost('${l.id}')">⚠ 廠商失聯</button><button class="note-prev-btn" onclick="markLeadNoDeal('${l.id}')">✕ 確認不合作</button>`;
+      const statusClass = l.status==='廠商失聯' ? 'lost' : (l.status==='確認不合作' ? 'no-deal' : (l.status==='已報價，等待回覆' ? 'waiting' : 'active'));
+      const daysLabel = l.lastContact ? (days===0 ? '今天聯絡' : `${days} 天前聯絡`) : (days===0 ? '今天更新' : `${days} 天前更新`);
+      return `<div class="lead-card ${l.status==='廠商失聯'||l.status==='確認不合作'?'closed':''} ${days>=30?'stale':''}">
+        <div class="lead-card-topline"><span class="lead-updated">${daysLabel}</span>${days>=23 && days<30 && l.status!=='廠商失聯' && l.status!=='確認不合作'?`<span class="lead-aging">距離失聯 ${Math.max(1,30-days)} 天</span>`:''}</div>
+        <div class="lead-head"><div class="lead-title-wrap"><div class="lead-brand-row"><span class="lead-brand-dot ${statusClass}"></span><p class="lead-brand">${escapeHtml(l.brand)}</p></div>${l.product?`<p class="lead-product">${escapeHtml(l.product)}</p>`:''}</div><span class="lead-status ${statusClass}">${escapeHtml(l.status||'洽談中')}</span></div>
+        <div class="lead-meta"><div><span>合作平台</span><strong>${escapeHtml((Array.isArray(l.platforms)?l.platforms:(l.platform?[l.platform]:[])).join('、')||'未設定')}</strong></div><div><span>合作模式</span><strong>${escapeHtml((Array.isArray(l.modes)?l.modes:(l.mode?[l.mode]:[])).join('、')||'未設定')}</strong></div><div><span>📅 預計合作日期</span><strong>${l.expectedDate||'未設定'}</strong></div><div><span>預計報價</span><strong>${fmtMoney(l.fee||0)}</strong></div><div><span>📞 最後一次聯絡日期</span><strong>${l.lastContact||'未設定'}</strong></div></div>
+        ${staleText?`<div class="lead-note ${l.status==='廠商失聯'?'lead-danger':''}">${staleText}</div>`:''}${followText?`<div class="lead-note ${followText.includes('🔴')?'lead-danger':'lead-success'}">${followText}</div>`:''}${l.noDealReason?`<div class="lead-note">不合作原因：${escapeHtml(l.noDealReason)}</div>`:''}${l.notes?`<div class="lead-note lead-note-box">${escapeHtml(l.notes)}</div>`:''}
+        <div class="lead-actions">${action}</div>
+      </div>`;
+    }).join('');
+  }
+  window.convertLead=convertLead; window.markLeadLost=markLeadLost; window.markLeadNoDeal=markLeadNoDeal; window.restoreLead=restoreLead; window.startEditLead=startEditLead; window.cancelLeadEdit=cancelLeadEdit;
 
   // ---------- 登入系統 ----------
 
@@ -1462,6 +1811,7 @@
 
       renderYearFilters();
       render();
+      loadLeads();
     });
   }
 
@@ -2523,6 +2873,37 @@
     renderReport();
   });
 
+  document.getElementById('leadPlatformToggles').addEventListener('click', e=>{
+    const chip=e.target.closest('[data-lead-plat]'); if(!chip) return;
+    const value=chip.dataset.leadPlat;
+    if(leadSelectedPlatforms.includes(value)){
+      leadSelectedPlatforms=leadSelectedPlatforms.filter(x=>x!==value);
+      chip.classList.remove('selected');
+    }else{
+      leadSelectedPlatforms.push(value); chip.classList.add('selected');
+    }
+  });
+  document.getElementById('leadModeToggles').addEventListener('click', e=>{
+    const chip=e.target.closest('[data-lead-mode]'); if(!chip) return;
+    const value=chip.dataset.leadMode;
+    if(leadSelectedModes.includes(value)){
+      leadSelectedModes=leadSelectedModes.filter(x=>x!==value); chip.classList.remove('selected');
+    }else{
+      leadSelectedModes.push(value); chip.classList.add('selected');
+    }
+  });
+
+  document.getElementById('btnAddLead').addEventListener('click', addLead);
+  document.getElementById('btnCancelLeadEdit').addEventListener('click', cancelLeadEdit);
+  document.querySelectorAll('[data-lead-filter]').forEach(btn=>btn.addEventListener('click',()=>{
+    document.querySelectorAll('[data-lead-filter]').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentLeadFilter=btn.dataset.leadFilter;
+    const addCard=document.querySelector('.lead-add-card');
+    if(addCard) addCard.style.display=currentLeadFilter==='active'?'block':'none';
+    renderLeads();
+  }));
+
   document.getElementById('viewTabs').addEventListener('click', e => {
     const btn = e.target.closest('.tab');
     if(!btn) return;
@@ -2531,13 +2912,16 @@
     const view = btn.dataset.view;
     document.getElementById('boardView').classList.toggle('app-hidden', view !== 'board');
     document.getElementById('reportView').classList.toggle('app-hidden', view !== 'report');
+    document.getElementById('leadsView').classList.toggle('app-hidden', view !== 'leads');
     if(view === 'report') renderReport();
+    if(view === 'leads') loadLeads();
   });
 
   // 頁面持續開啟時，每 60 秒再檢查一次日期。
   // 這樣跨過午夜後，也能自動把符合條件的「待審核」案件移到「待請款」。
   setInterval(() => {
     autoMoveApprovedCasesToPending();
+    autoMarkStaleLeads().then(loadLeads).catch(console.error);
   }, 60000);
 
   // ---------- Excel 匯出功能 ----------
@@ -2876,4 +3260,29 @@
   });
 </script>
 </body>
-</html>
+</html
+  /* ===== 洽談中獨立頁面 ===== */
+  .lead-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
+  .lead-toolbar .tab{cursor:pointer;}
+  .lead-add-card{background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:16px;}
+  .lead-add-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;}
+  .lead-add-grid input,.lead-add-grid select,.lead-add-grid textarea{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:7px;background:rgba(255,255,255,.08);color:var(--text);padding:8px 9px;font:inherit;}
+  .lead-add-grid textarea{min-height:72px;resize:vertical;grid-column:1/-1;}
+  .lead-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px;}
+  .lead-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px;}
+  .lead-card{background:rgba(255,255,255,.055);border:1px solid var(--line);border-radius:12px;padding:13px;min-width:0;}
+  .lead-card.stale{border-color:rgba(217,123,83,.65);}
+  .lead-card.closed{opacity:.78;}
+  .lead-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;}
+  .lead-brand{font-size:16px;font-weight:800;color:var(--text);margin:0;}
+  .lead-product{font-size:12px;color:var(--text-soft);margin:4px 0 8px;}
+  .lead-status{display:inline-flex;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.09);font-size:10px;font-weight:700;color:var(--text);white-space:nowrap;}
+  .lead-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:9px 0;}
+  .lead-meta div{padding:7px 8px;border-radius:7px;background:rgba(255,255,255,.045);font-size:11px;color:var(--text-soft);min-width:0;}
+  .lead-meta strong{display:block;color:var(--text);font-size:11px;margin-bottom:2px;}
+  .lead-note{font-size:11px;line-height:1.5;color:var(--text-soft);white-space:pre-wrap;margin:8px 0;}
+  .lead-danger{color:#d88a70!important;}
+  .lead-success{color:#8fbf9a!important;}
+  .lead-empty{padding:28px;text-align:center;color:var(--text-soft);border:1px dashed var(--line);border-radius:10px;}
+  @media(max-width:760px){.lead-add-grid{grid-template-columns:1fr 1fr}.lead-meta{grid-template-columns:1fr}.lead-list{grid-template-columns:1fr;}}
+>
