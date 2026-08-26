@@ -701,6 +701,123 @@
   .closed-item-fee{display:flex;flex-direction:column;align-items:flex-end;gap:3px;white-space:nowrap;}
   .closed-item-fee span{font-size:10px;color:var(--text-soft);font-weight:500;}
   .closed-item-fee strong{font-size:15px;color:var(--mint);}
+
+/* ===== v44 合作月曆／競業查詢 ===== */
+.calendar-page-header,.competition-page-header{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:16px}.calendar-eyebrow{font-size:10px;letter-spacing:.18em;color:var(--text-soft);margin-bottom:5px}.calendar-page-header h2,.competition-page-header h2{margin:0 0 5px;font-size:22px;color:var(--text)}.calendar-page-header p,.competition-page-header p{margin:0;color:var(--text-soft);font-size:12px}.calendar-summary{display:flex;gap:8px;flex-wrap:wrap}.calendar-summary-item{padding:8px 11px;border:1px solid var(--line);border-radius:9px;background:rgba(255,255,255,.045);font-size:11px;color:var(--text-soft)}.calendar-summary-item strong{display:block;color:var(--text);font-size:15px;margin-bottom:2px}.calendar-toolbar{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:12px}.calendar-toolbar strong{min-width:120px;text-align:center;font-size:16px;color:var(--text)}.calendar-nav-btn,.calendar-today-btn{border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--text);border-radius:8px;padding:7px 10px;cursor:pointer}.calendar-nav-btn{font-size:20px;line-height:1}.calendar-layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:12px}.calendar-grid-wrap{background:rgba(255,255,255,.035);border:1px solid var(--line);border-radius:12px;padding:10px}.calendar-weekdays,.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}.calendar-weekdays span{text-align:center;color:var(--text-soft);font-size:10px;padding:6px 0}.calendar-cell{min-height:92px;border:1px solid rgba(255,255,255,.05);padding:6px;cursor:pointer;background:rgba(255,255,255,.015);overflow:hidden}.calendar-cell:hover{background:rgba(255,255,255,.045)}.calendar-cell.muted{opacity:.4}.calendar-cell.today{box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}.calendar-cell.selected{background:rgba(255,255,255,.08)}.calendar-day-num{font-size:11px;font-weight:800;color:var(--text);margin-bottom:5px}.calendar-event{display:block;padding:4px 5px;margin:3px 0;border-radius:5px;background:rgba(143,191,154,.12);color:#b9d9c0;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.calendar-event.range{background:rgba(120,160,205,.12);color:#b7cae0}.calendar-more{font-size:9px;color:var(--text-soft);margin-top:3px}.calendar-day-panel{background:rgba(255,255,255,.035);border:1px solid var(--line);border-radius:12px;padding:13px;min-height:220px}.calendar-day-panel h3{margin:0 0 10px;font-size:14px;color:var(--text)}.calendar-event-card{padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer}.calendar-event-card:last-child{border-bottom:0}.calendar-event-card strong{display:block;color:var(--text);font-size:12px}.calendar-event-card span{display:block;color:var(--text-soft);font-size:10px;margin-top:3px}.calendar-day-empty{color:var(--text-soft);font-size:11px;padding:18px 4px}.competition-toolbar{display:flex;gap:8px;align-items:center;margin-bottom:14px}.competition-toolbar input{flex:1;min-width:0;border:1px solid var(--line);border-radius:8px;background:rgba(255,255,255,.06);color:var(--text);padding:9px 11px;font:inherit}.competition-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}.competition-card{background:rgba(255,255,255,.045);border:1px solid var(--line);border-radius:12px;padding:13px}.competition-card.soon{border-color:rgba(210,165,90,.55)}.competition-card h3{margin:0;color:var(--text);font-size:15px}.competition-card .competition-item{margin-top:4px;color:var(--text-soft);font-size:11px}.competition-days{margin-top:10px;font-size:12px;font-weight:800}.competition-days.normal{color:#9fc6aa}.competition-days.soon{color:#d8b276}.competition-source{margin-top:8px;color:var(--text-soft);font-size:10px}.lead-status-select{height:32px!important;min-height:32px!important;padding:5px 9px!important;font-size:11px!important}
+@media(max-width:900px){.calendar-layout{grid-template-columns:1fr}.calendar-cell{min-height:76px}.competition-list{grid-template-columns:1fr}}
+@media(max-width:760px){.calendar-page-header,.competition-page-header{display:block}.calendar-summary{margin-top:10px}.calendar-cell{min-height:62px;padding:4px}.calendar-event{font-size:9px}}
+
+  .quote-history-modal{max-width:520px;}
+  .quote-history-row{display:flex;justify-content:space-between;gap:20px;padding:13px 0;border-bottom:1px solid var(--line);}
+  .quote-history-row>div{display:flex;flex-direction:column;gap:4px;}
+  .quote-history-row b{font-family:'IBM Plex Mono',monospace;font-size:16px;color:var(--text);}
+  .quote-history-row span{font-size:11px;color:var(--text-soft);}
+  .quote-history-empty{padding:24px;text-align:center;color:var(--text-soft);font-size:12px;}
+
+  .quote-clean-row{grid-template-columns:minmax(0,1fr) auto 76px;}
+  .quote-clean-action{display:flex;justify-content:flex-end;align-items:center;gap:4px;} .quote-clean-action{min-width:76px;white-space:nowrap;}
+  .quote-clean-action button{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;flex:0 0 30px;}
+  .quote-history-modal{max-width:520px;}
+  .quote-history-row{display:flex;justify-content:space-between;gap:20px;padding:12px 0;border-bottom:1px solid var(--line);}
+  .quote-history-row>div{display:flex;flex-direction:column;gap:4px;}
+  .quote-history-row span{font-size:11px;color:var(--text-soft);}
+  .quote-history-empty{padding:22px 0;color:var(--text-soft);font-size:12px;}
+
+/* v57: 報價操作區修正 */
+.quote-clean-row{
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) auto 76px !important;
+  align-items:center !important;
+  column-gap:16px !important;
+  min-width:0 !important;
+  overflow:hidden !important;
+}
+.quote-clean-price,
+.quote-addon-price{
+  white-space:nowrap !important;
+  text-align:right !important;
+  min-width:0 !important;
+}
+.quote-clean-action{
+  width:76px !important;
+  min-width:76px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  gap:6px !important;
+  overflow:visible !important;
+  box-sizing:border-box !important;
+}
+.quote-clean-action button{
+  width:32px !important;
+  height:32px !important;
+  min-width:32px !important;
+  max-width:32px !important;
+  padding:0 !important;
+  margin:0 !important;
+  flex:0 0 32px !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  box-sizing:border-box !important;
+  border-radius:8px !important;
+}
+@media (max-width:700px){
+  .quote-clean-row{
+    grid-template-columns:minmax(0,1fr) auto 72px !important;
+    column-gap:10px !important;
+  }
+  .quote-clean-action{
+    width:72px !important;
+    min-width:72px !important;
+    gap:4px !important;
+  }
+  .quote-clean-action button{
+    width:30px !important;
+    height:30px !important;
+    min-width:30px !important;
+    max-width:30px !important;
+    flex-basis:30px !important;
+  }
+}
+
+
+/* v58: 案件看板「新增案件」按鈕置中 */
+#caseForm .form-actions,
+#caseForm .add-form-actions,
+#caseForm .modal-actions,
+#caseForm .form-footer{
+  display:flex !important;
+  justify-content:center !important;
+  align-items:center !important;
+  gap:12px !important;
+  width:100% !important;
+}
+
+
+#addCaseForm .form-actions,
+#addCaseForm .add-form-actions,
+#addCaseForm .modal-actions,
+#addCaseForm .form-footer,
+#caseModal .form-actions,
+#caseModal .add-form-actions{
+  display:flex !important;
+  justify-content:center !important;
+  align-items:center !important;
+  gap:12px !important;
+  width:100% !important;
+}
+
+
+/* v60: 只修正新增案件兩個按鈕的文字置中，不改按鈕排列 */
+.add-grid > #btnAdd,
+.add-grid > #btnCancelEdit{
+  text-align:center !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+
 </style>
 
 <style>
@@ -785,6 +902,11 @@
   .lead-empty{grid-column:1/-1;padding:48px 24px;text-align:center;color:#807884;border:1px dashed #403A45;border-radius:14px;background:#29252D;}
   @media(max-width:900px){.lead-list{grid-template-columns:1fr}.lead-page-header{align-items:flex-start;flex-direction:column}.lead-rule{white-space:normal}.lead-add-grid{grid-template-columns:1fr 1fr;}}
   @media(max-width:620px){.lead-add-grid{grid-template-columns:1fr}.lead-toolbar{width:100%;overflow:auto}.lead-toolbar .tab{flex:0 0 auto}.lead-meta{grid-template-columns:1fr}.lead-head{flex-direction:column}.lead-status{align-self:flex-start}.lead-page-header h2{font-size:24px;}}
+
+/* ===== v47 報價單式 UI ===== */
+ .quotes-page-header{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;margin:4px 0 22px}.quotes-eyebrow{font-size:10px;letter-spacing:.14em;color:#8F8792;margin-bottom:5px}.quotes-page-header h2{margin:0 0 4px;font-size:27px;font-weight:780;color:#F5F0F3}.quotes-page-header p{margin:0;color:#AAA2AC;font-size:12px}.quote-primary-btn{border:0;border-radius:9px;padding:10px 15px;font-weight:750;cursor:pointer;background:#F0D7DF;color:#352A30;box-shadow:none}.quote-primary-btn:hover{background:#F7E4E9}.quote-section{margin:0 0 28px}.quote-section-head{display:flex;align-items:flex-end;justify-content:space-between;margin:0 0 10px}.quote-section-title{font-size:15px;font-weight:760;color:#F0EAEE}.quote-section-sub{font-size:11px;color:#8F8792;margin-top:3px}.quote-list-clean{display:flex;flex-direction:column;gap:7px}.quote-clean-row{display:grid;grid-template-columns:minmax(0,1fr) 150px 44px;align-items:center;min-height:68px;padding:13px 16px;border:1px solid #39343D;border-radius:11px;background:#211E24;transition:.15s}.quote-clean-row:hover{background:#27232B;border-color:#4A444F}.quote-clean-name{font-size:14px;font-weight:700;color:#F1ECEF}.quote-clean-price{font-size:18px;font-weight:800;color:#F2DCE4;text-align:right}.quote-clean-action{display:flex;justify-content:flex-end}.quote-clean-action button{width:30px;height:30px;border:0;border-radius:7px;background:transparent;color:#9D95A0;cursor:pointer;font-size:14px}.quote-clean-action button:hover{background:#302B33;color:#F0ECEF}.quote-empty{padding:28px 20px;text-align:center;color:#807984;border:1px dashed #403A45;border-radius:11px;background:#211E24;font-size:11px}.quote-form-card{background:#211E24;border:1px solid #403A44;border-radius:12px;padding:18px;margin-bottom:20px}.quote-form-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}.quote-close-btn,.quote-cancel-btn{border:1px solid #45404A;background:transparent;color:#BDB5BF;border-radius:8px;padding:7px 11px;cursor:pointer}.quote-close-btn:hover,.quote-cancel-btn:hover{color:#F1EDF0;border-color:#66606A}.quote-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}.quote-field{min-width:0}.quote-field label{display:block;font-size:11px;color:#AAA2AC;margin-bottom:6px}.quote-field input,.quote-field select{width:100%;min-width:0}.quote-form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}.quote-addon-price{font-size:17px;font-weight:800;color:#F2DCE4;text-align:right}.quote-addon-period{margin-top:4px;font-size:11px;color:#8F8792}
+ .quotes-page-header{margin-bottom:30px}.quotes-eyebrow{display:none}.quotes-page-header h2{font-size:26px;letter-spacing:-.5px}.quotes-page-header p{font-size:12px;margin-top:6px;color:#948D97}.quote-section{margin-bottom:34px}.quote-section-head{align-items:center;margin-bottom:12px}.quote-section-title{font-size:16px}.quote-section-sub{font-size:11px;color:#8B838E}.quote-primary-btn{background:#F3DDE4;color:#3B3036;border-radius:8px;padding:9px 13px;font-size:12px}.quote-list-clean{gap:0;border-top:1px solid #38333B}.quote-clean-row{grid-template-columns:minmax(0,1fr) auto 34px;min-height:64px;padding:14px 4px 14px 2px;border:0;border-bottom:1px solid #38333B;border-radius:0;background:transparent}.quote-clean-row:hover{background:rgba(255,255,255,.025);border-color:#403A43}.quote-clean-name{font-size:14px;font-weight:650;color:#F1ECEF}.quote-clean-price{font-size:16px;color:#EAD5DD}.quote-addon-price{font-size:15px;color:#EAD5DD;font-weight:700;text-align:right}.quote-clean-action button{opacity:.35;width:28px;height:28px}.quote-clean-row:hover .quote-clean-action button{opacity:1}.quote-empty{border:0;border-bottom:1px solid #38333B;border-radius:0;background:transparent;padding:24px 4px;text-align:left}.quote-form-card{background:#29252B;border:1px solid #403A44;border-radius:14px;padding:20px;margin-bottom:18px;box-shadow:0 10px 30px rgba(0,0,0,.12)}.quote-form-head{margin-bottom:18px}.quote-form-head .add-title{font-size:14px;color:#F2EDF0}.quote-field input,.quote-field select{background:#211E24;color:#F0EAEE;border:1px solid #45404A;border-radius:8px;padding:10px 11px}.quote-field input:focus,.quote-field select:focus{outline:none;border-color:#A98995;box-shadow:0 0 0 2px rgba(169,137,149,.12)}.quote-form-actions{margin-top:18px}.quote-cancel-btn{padding:8px 12px}.quote-addon-form{grid-template-columns:1.4fr 1fr 1fr!important}.quote-addon-form .quote-field:last-child{grid-column:auto}
+ @media(max-width:700px){.quotes-page-header{align-items:flex-start;flex-direction:column}.quote-form-grid{grid-template-columns:1fr}.quote-clean-row{grid-template-columns:minmax(0,1fr) 120px 76px}.quote-clean-price{font-size:16px}}.quote-form-grid{grid-template-columns:1fr}.quote-list{grid-template-columns:1fr}.quote-summary{align-items:flex-start;gap:8px;flex-direction:column}}
 </style>
 </head>
 <body>
@@ -837,11 +959,27 @@
   </div>
 
   <div class="filters" id="viewTabs">
-    <button class="tab active" data-view="board">📋案件看板</button>
+    <button class="tab active" data-view="calendar">📅合作月曆</button>
+    <button class="tab" data-view="board">📋案件看板</button>
     <button class="tab" data-view="leads">💬洽談中</button>
+    <button class="tab" data-view="quotes">💰報價模式</button>
     <button class="tab" data-view="report">📊結案報表</button>
+    <button class="tab" data-view="competition">🔒競業查詢</button>
   </div>
 
+
+  <div id="calendarView">
+    <div class="calendar-page-header"><div><div class="calendar-eyebrow">COOPERATION CALENDAR</div><h2>📅合作月曆</h2><p>快速查看哪幾天有合作要上線，以及團購／分潤目前正在進行的合作區間。</p></div><div class="calendar-summary" id="calendarSummary"></div></div>
+    <div class="calendar-toolbar"><button class="calendar-nav-btn" id="calendarPrev">‹</button><strong id="calendarMonthLabel"></strong><button class="calendar-nav-btn" id="calendarNext">›</button><button class="calendar-today-btn" id="calendarToday">今天</button></div>
+    <div class="calendar-layout"><div class="calendar-grid-wrap"><div class="calendar-weekdays"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div><div id="calendarGrid" class="calendar-grid"></div></div><div class="calendar-day-panel" id="calendarDayPanel"><div class="calendar-day-empty">點選日期查看當天合作</div></div></div>
+  </div>
+
+  <div id="competitionView" class="app-hidden">
+    <div class="competition-page-header"><div><div class="calendar-eyebrow">NON-COMPETE CHECK</div><h2>🔒競業查詢</h2><p>搜尋目前仍在競業期間的品牌、產品或合作項目，確認接案前是否可能衝突。</p></div></div>
+    <div class="competition-toolbar"><input id="competitionSearch" type="search" placeholder="🔍 搜尋品牌／產品／合作項目"></div>
+    <div class="stats"><div class="stat"><div class="l">目前競業</div><div class="n" id="competitionCount">0</div></div><div class="stat"><div class="l">🟡30天內到期</div><div class="n" id="competitionSoonCount">0</div></div></div>
+    <div id="competitionList" class="competition-list"></div>
+  </div>
 
   <div id="leadsView" class="app-hidden">
     <div class="lead-page-header">
@@ -889,7 +1027,7 @@
           <label for="leadExpectedDate">📅 預計合作日期</label>
           <input id="leadExpectedDate" type="date">
         </div>
-        <select id="leadStatus">
+        <select id="leadStatus" class="lead-status-select">
           <option value="洽談中">洽談中</option>
           <option value="已報價，等待回覆">已報價，等待回覆</option>
           <option value="廠商確認中">廠商確認中</option>
@@ -902,7 +1040,7 @@
         </div>
         <textarea id="leadNotes" placeholder="洽談備註／報價條件／廠商回覆"></textarea>
       </div>
-      <div class="lead-actions"><button class="note-prev-btn" id="btnCancelLeadEdit" type="button" style="display:none;">取消編輯</button><button class="note-next-btn next-review" id="btnAddLead">＋ 新增洽談</button></div>
+      <div class="lead-actions"><button class="note-prev-btn" id="btnCancelLeadEdit" type="button">取消</button><button class="note-next-btn next-review" id="btnAddLead">＋ 新增洽談</button></div>
     </div>
     <div class="stats">
       <div class="stat"><div class="l">目前洽談</div><div class="n" id="leadStatActive">0</div></div>
@@ -912,7 +1050,43 @@
     <div id="leadList" class="lead-list"></div>
   </div>
 
-  <div id="boardView">
+  <div id="quotesView" class="app-hidden">
+    <div class="quotes-page-header">
+      <div><div class="quotes-eyebrow">MY RATE CARD</div><h2>💰報價模式</h2><p>案件報價與授權／加值費用分開管理。</p></div>
+    </div>
+
+    <div id="quoteFormCard" class="quote-form-card app-hidden">
+      <div class="quote-form-head"><div class="add-title" id="quoteFormTitle">新增案件報價</div><button class="quote-close-btn" id="btnCancelQuote">取消</button></div>
+      <div class="quote-form-grid">
+        <div class="quote-field"><label>合作形式</label><select id="quoteModeSelect"><option value="">請選擇合作形式</option><option value="圖文">圖文</option><option value="限時動態">限時動態</option><option value="短影片">短影片</option><option value="Reels">Reels</option><option value="團購">團購</option><option value="分潤">分潤</option><option value="串文">串文</option><option value="其他">其他</option></select></div>
+        <div class="quote-field"><label>報價（NT$）</label><input id="quotePrice" type="number" min="0" placeholder="例如 8500"></div>
+        <div class="quote-field"><label>授權時間</label><select id="quoteBasicAuthPeriod"><option value="none">無授權</option><option value="1m">1個月</option><option value="3m">3個月</option><option value="6m">6個月</option><option value="12m">12個月</option><option value="unlimited">永久／無期限</option><option value="custom">自訂</option></select></div>
+      </div>
+      <div class="quote-form-actions"><button class="quote-cancel-btn" id="btnCancelQuoteBottom">取消</button><button class="quote-primary-btn" id="btnSaveQuote">儲存報價</button></div>
+    </div>
+
+    <section class="quote-section">
+      <div class="quote-section-head"><div><div class="quote-section-title">案件報價</div><div class="quote-section-sub">合作本身的基本價格</div></div><button class="quote-primary-btn" id="btnNewQuote">＋新增報價</button></div>
+      <div id="quoteList" class="quote-list-clean"></div>
+    </section>
+
+    <section class="quote-section">
+      <div class="quote-section-head"><div><div class="quote-section-title">授權／加值費用</div><div class="quote-section-sub">合作之外的額外收費</div></div><button class="quote-primary-btn" id="btnNewAddon">＋新增費用</button></div>
+      <div id="quoteAddonList" class="quote-list-clean"></div>
+    </section>
+
+    <div id="quoteAddonFormCard" class="quote-form-card app-hidden">
+      <div class="quote-form-head"><div class="add-title" id="quoteAddonFormTitle">新增授權／加值費用</div><button class="quote-close-btn" id="btnCancelAddon">取消</button></div>
+      <div class="quote-form-grid quote-addon-form">
+        <div class="quote-field"><label>加值項目</label><input id="quoteAddonName" type="text" placeholder="例如 授權延長、廣告投放授權、跨平台同步"></div>
+        <div class="quote-field"><label>費用（NT$）</label><input id="quoteAddonPrice" type="number" min="0" placeholder="例如 1500"></div>
+        <div class="quote-field"><label>授權期限</label><select id="quoteAddonPeriod"><option value="none">無期限</option><option value="1m">1個月</option><option value="3m">3個月</option><option value="6m">6個月</option><option value="12m">12個月</option><option value="unlimited">永久</option><option value="custom">自訂</option></select></div>
+      </div>
+      <div class="quote-form-actions"><button class="quote-cancel-btn" id="btnCancelAddonBottom">取消</button><button class="quote-primary-btn" id="btnSaveAddon">儲存費用</button></div>
+    </div>
+  </div>
+
+  <div id="boardView" class="app-hidden">
 
   <div class="deadline-banner" id="deadlineBanner">
     <h3>⏰ 即將到期的初稿／腳本</h3>
@@ -1061,7 +1235,7 @@
         <button type="button" class="plat-chip" data-plat="其他">其他平台</button>
       </div>
       <button class="btn-add" id="btnAdd">加入合作總覽</button>
-      <button class="btn-add" id="btnCancelEdit" style="display:none; background:transparent; border:1px solid var(--line); color:var(--text-soft);">取消編輯</button>
+      <button class="btn-add" id="btnCancelEdit" style="display:inline-flex; background:transparent; border:1px solid var(--line); color:var(--text-soft);">取消</button>
       <div class="err" id="addErr">請至少輸入品牌名稱</div>
     </div>
   </div>
@@ -1282,7 +1456,7 @@
     if(card) card.classList.toggle('editing',!!editing);
     if(title) title.textContent=editing?'編輯洽談':'新增洽談';
     if(btn) btn.textContent=editing?'儲存修改':'＋ 新增洽談';
-    if(cancel) cancel.style.display=editing?'inline-flex':'none';
+    if(cancel) cancel.style.display='inline-flex';
   }
   function cancelLeadEdit(){
     editingLeadId=null;
@@ -1966,7 +2140,7 @@
     authorizationExtensions = [];
     document.getElementById('addTitle').textContent = '新增案件';
     document.getElementById('btnAdd').textContent = '加入合作總覽';
-    document.getElementById('btnCancelEdit').style.display = 'none';
+    document.getElementById('btnCancelEdit').style.display = 'inline-flex';
     document.getElementById('scriptProvidedDateWrap').classList.remove('show');
     document.getElementById('draftProvidedDateWrap').classList.remove('show');
     document.getElementById('paidDateWrap').classList.remove('show');
@@ -2904,17 +3078,176 @@
     renderLeads();
   }));
 
+
+  // ---------- 報價模式 v51 ----------
+  let quotes=[];
+  let quoteAddons=[];
+  let editingQuoteId=null;
+  let editingAddonId=null;
+  let quoteHistory=[];
+
+  function clearQuoteForm(){
+    editingQuoteId=null;
+    document.getElementById('quoteModeSelect').value='';
+    document.getElementById('quotePrice').value='';
+    document.getElementById('quoteBasicAuthPeriod').value='none';
+    document.getElementById('quoteFormTitle').textContent='新增案件報價';
+    document.getElementById('quoteFormCard').classList.add('app-hidden');
+  }
+  function openQuoteForm(id=null){
+    const card=document.getElementById('quoteFormCard'); if(!card)return;
+    if(!id){clearQuoteForm();card.classList.remove('app-hidden');card.scrollIntoView({behavior:'smooth',block:'center'});return;}
+    const q=quotes.find(x=>x.id===id); if(!q)return;
+    editingQuoteId=id; card.classList.remove('app-hidden');
+    document.getElementById('quoteFormTitle').textContent='編輯案件報價';
+    document.getElementById('quoteModeSelect').value=(q.modes&&q.modes[0])||q.mode||q.name||'';
+    document.getElementById('quotePrice').value=q.price ?? '';
+    document.getElementById('quoteBasicAuthPeriod').value=q.basicAuthPeriod||'none';
+    card.scrollIntoView({behavior:'smooth',block:'center'});
+  }
+  function clearAddonForm(){
+    editingAddonId=null;
+    document.getElementById('quoteAddonName').value='';
+    document.getElementById('quoteAddonPrice').value='';
+    document.getElementById('quoteAddonPeriod').value='none';
+    document.getElementById('quoteAddonFormTitle').textContent='新增授權／加值費用';
+    document.getElementById('quoteAddonFormCard').classList.add('app-hidden');
+  }
+  function openAddonForm(id=null){
+    const card=document.getElementById('quoteAddonFormCard'); if(!card)return;
+    if(!id){clearAddonForm();card.classList.remove('app-hidden');card.scrollIntoView({behavior:'smooth',block:'center'});return;}
+    const q=quoteAddons.find(x=>x.id===id); if(!q)return;
+    editingAddonId=id; card.classList.remove('app-hidden');
+    document.getElementById('quoteAddonFormTitle').textContent='編輯授權／加值費用';
+    document.getElementById('quoteAddonName').value=q.name||'';
+    document.getElementById('quoteAddonPrice').value=q.price ?? '';
+    document.getElementById('quoteAddonPeriod').value=q.period||'none';
+    card.scrollIntoView({behavior:'smooth',block:'center'});
+  }
+  async function loadQuotes(){
+    if(!currentUser)return;
+    const [snap,addonSnap]=await Promise.all([
+      get(ref(db,`users/${currentUser.uid}/quotes`)),
+      get(ref(db,`users/${currentUser.uid}/quoteAddons`))
+    ]);
+    quotes=snap.exists()?Object.keys(snap.val()).map(id=>({id,...snap.val()[id]})).filter(x=>x.kind!=='addon'):[ ];
+    quoteAddons=addonSnap.exists()?Object.keys(addonSnap.val()).map(id=>({id,...addonSnap.val()[id]})):[ ];
+    renderQuotes(); renderQuoteAddons();
+  }
+  function renderQuotes(){
+    const list=document.getElementById('quoteList'); if(!list)return;
+    const data=[...quotes].sort((a,b)=>((a.modes&&a.modes[0])||a.mode||a.name||'').localeCompare((b.modes&&b.modes[0])||b.mode||b.name||''));
+    if(!data.length){list.innerHTML='<div class="quote-empty">目前還沒有案件報價。</div>';return;}
+    const esc=escapeHtml;
+    list.innerHTML=data.map(x=>{
+      const mode=(x.modes&&x.modes[0])||x.mode||x.name||'未設定';
+      const periodMap={none:'無授權','1m':'1個月','3m':'3個月','6m':'6個月','12m':'12個月',unlimited:'永久／無期限',custom:'自訂'};
+      const authLabel=periodMap[x.basicAuthPeriod||'none']||x.basicAuthPeriod||'無授權';
+      return `<div class="quote-clean-row"><div><div class="quote-clean-name">${esc(mode)}</div><div class="quote-addon-period">授權時間：${esc(authLabel)}</div></div><div class="quote-clean-price">NT$${Number(x.price||0).toLocaleString()}</div><div class="quote-clean-action"><button title="報價歷史" onclick="showQuoteHistory('${x.id}')">🕘</button><button title="編輯" onclick="editQuote('${x.id}')">✏️</button></div></div>`;
+    }).join('');
+  }
+  function renderQuoteAddons(){
+    const list=document.getElementById('quoteAddonList'); if(!list)return;
+    const data=[...quoteAddons].sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+    if(!data.length){list.innerHTML='<div class="quote-empty">目前還沒有授權／加值費用。</div>';return;}
+    const esc=escapeHtml;
+    const periodMap={none:'無期限','1m':'1個月','3m':'3個月','6m':'6個月','12m':'12個月',unlimited:'永久',custom:'自訂'};
+    list.innerHTML=data.map(x=>`<div class="quote-clean-row"><div><div class="quote-clean-name">${esc(x.name||'未命名費用')}</div><div class="quote-addon-period">授權期限：${esc(periodMap[x.period]||x.period||'無期限')}</div></div><div class="quote-addon-price">NT$${Number(x.price||0).toLocaleString()}</div><div class="quote-clean-action"><button title="編輯" onclick="editQuoteAddon('${x.id}')">✏️</button></div></div>`).join('');
+  }
+  async function loadQuoteHistory(){
+    if(!currentUser)return;
+    const snap=await get(ref(db,`users/${currentUser.uid}/quoteHistory`));
+    quoteHistory=snap.exists()?Object.keys(snap.val()).map(id=>({id,...snap.val()[id]})):[];
+  }
+  async function recordQuoteHistory(q,action){
+    if(!currentUser||!q)return;
+    const id=uid();
+    await set(ref(db,`users/${currentUser.uid}/quoteHistory/${id}`),{quoteId:q.id||null,name:q.name||'',price:Number(q.price||0),basicAuthPeriod:q.basicAuthPeriod||'none',action:action||'更新',changedAt:Date.now()});
+  }
+  function periodLabel(p){return ({none:'無授權','1m':'1個月','3m':'3個月','6m':'6個月','12m':'12個月',unlimited:'永久／無期限',custom:'自訂'}[p]||p||'無授權');}
+  async function showQuoteHistory(id){
+    await loadQuoteHistory();
+    const q=quotes.find(x=>x.id===id);
+    if(!q)return;
+    const rows=quoteHistory.filter(x=>x.quoteId===id).sort((a,b)=>(b.changedAt||0)-(a.changedAt||0));
+    const body=rows.length?rows.map(r=>{const d=new Date(r.changedAt||0);const ds=`${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;return `<div class="quote-history-row"><div><b>NT$${Number(r.price||0).toLocaleString()}</b><span>${escapeHtml(periodLabel(r.basicAuthPeriod))}</span></div><div><span>${ds}</span><span>${escapeHtml(r.action||'更新')}</span></div></div>`}).join(''):'<div class="quote-history-empty">目前沒有歷史紀錄。</div>';
+    let modal=document.getElementById('quoteHistoryModal');
+    if(!modal){modal=document.createElement('div');modal.id='quoteHistoryModal';modal.className='modal-overlay';modal.innerHTML=`<div class="modal-card quote-history-modal"><button class="modal-close" onclick="closeQuoteHistory()">×</button><h2 id="quoteHistoryTitle">報價歷史</h2><div id="quoteHistoryList"></div></div>`;document.body.appendChild(modal);}
+    document.getElementById('quoteHistoryTitle').textContent=`${q.name||'案件報價'}｜報價歷史`;
+    document.getElementById('quoteHistoryList').innerHTML=body;
+    modal.classList.remove('app-hidden');
+  }
+  function closeQuoteHistory(){document.getElementById('quoteHistoryModal')?.classList.add('app-hidden');}
+  async function saveQuote(){
+    if(!currentUser)return;
+    const mode=document.getElementById('quoteModeSelect').value;
+    if(!mode){alert('請先選擇合作形式');return;}
+    const now=Date.now();
+    const basicAuthPeriod=document.getElementById('quoteBasicAuthPeriod').value||'none';
+    const payload={name:mode,content:'',price:Number(document.getElementById('quotePrice').value)||0,basicAuthPeriod,platforms:[],modes:[mode],unit:'',updatedAt:now};
+    if(editingQuoteId){
+      const old=quotes.find(x=>x.id===editingQuoteId);
+      if(old) await recordQuoteHistory(old,'修改前');
+      await update(ref(db,`users/${currentUser.uid}/quotes/${editingQuoteId}`),payload);
+    }else{const id=uid();await set(ref(db,`users/${currentUser.uid}/quotes/${id}`),{...payload,createdAt:now});}
+    await loadQuotes(); clearQuoteForm();
+  }
+  async function saveQuoteAddon(){
+    if(!currentUser)return;
+    const name=document.getElementById('quoteAddonName').value.trim();
+    if(!name){alert('請先填寫費用項目');return;}
+    const now=Date.now();
+    const payload={name,price:Number(document.getElementById('quoteAddonPrice').value)||0,period:document.getElementById('quoteAddonPeriod').value,updatedAt:now};
+    if(editingAddonId) await update(ref(db,`users/${currentUser.uid}/quoteAddons/${editingAddonId}`),payload);
+    else {const id=uid();await set(ref(db,`users/${currentUser.uid}/quoteAddons/${id}`),{...payload,createdAt:now});}
+    await loadQuotes(); clearAddonForm();
+  }
+  window.editQuote=openQuoteForm;
+  window.editQuoteAddon=openAddonForm;
+  window.showQuoteHistory=showQuoteHistory;
+  window.closeQuoteHistory=closeQuoteHistory;
+  document.getElementById('btnNewQuote')?.addEventListener('click',()=>openQuoteForm());
+  document.getElementById('btnSaveQuote')?.addEventListener('click',saveQuote);
+  document.getElementById('btnCancelQuote')?.addEventListener('click',clearQuoteForm);
+  document.getElementById('btnCancelQuoteBottom')?.addEventListener('click',clearQuoteForm);
+  document.getElementById('btnNewAddon')?.addEventListener('click',()=>openAddonForm());
+  document.getElementById('btnSaveAddon')?.addEventListener('click',saveQuoteAddon);
+  document.getElementById('btnCancelAddon')?.addEventListener('click',clearAddonForm);
+  document.getElementById('btnCancelAddonBottom')?.addEventListener('click',clearAddonForm);
+
+  // ---------- 合作月曆／競業查詢 v44 ----------
+  let calendarCursor = new Date();
+  let selectedCalendarDate = null;
+  function dateKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+  function parseLocalDate(value){if(!value)return null;const m=String(value).match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?new Date(+m[1],+m[2]-1,+m[3]):null;}
+  function getCalendarEvents(){const out=[];(cases||[]).forEach(c=>{const d=c.dates||{},range=Array.isArray(c.modes)&&(c.modes.includes('團購')||c.modes.includes('分潤'));const start=parseLocalDate(range?(d.collabStart||d.collabEnd):d.collab);const end=parseLocalDate(range?(d.collabEnd||d.collabStart):d.collab);if(start)out.push({id:c.id,brand:c.brand||'未命名案件',product:c.product||'',modes:c.modes||[],start,end:end||start,range});});return out;}
+  function renderCalendar(){const y=calendarCursor.getFullYear(),m=calendarCursor.getMonth(),label=document.getElementById('calendarMonthLabel'),grid=document.getElementById('calendarGrid');if(!label||!grid)return;label.textContent=`${y}年${m+1}月`;const first=new Date(y,m,1),offset=(first.getDay()+6)%7,days=new Date(y,m+1,0).getDate(),today=dateKey(new Date()),events=getCalendarEvents();let html='';for(let i=0;i<42;i++){const d=new Date(y,m,i-offset+1),key=dateKey(d),inMonth=d.getMonth()===m,evs=events.filter(ev=>key>=dateKey(ev.start)&&key<=dateKey(ev.end));const cls=['calendar-cell',inMonth?'':'muted',key===today?'today':'',key===selectedCalendarDate?'selected':''].filter(Boolean).join(' ');html+=`<div class="${cls}" data-calendar-date="${key}"><div class="calendar-day-num">${d.getDate()}</div>`;evs.slice(0,3).forEach(ev=>html+=`<span class="calendar-event ${ev.range?'range':''}">${escapeHtml(ev.brand)}</span>`);if(evs.length>3)html+=`<div class="calendar-more">＋${evs.length-3} 個合作</div>`;html+='</div>';}grid.innerHTML=html;const monthStart=new Date(y,m,1),monthEnd=new Date(y,m+1,0),monthEvents=events.filter(ev=>ev.start<=monthEnd&&ev.end>=monthStart),daySet=new Set();monthEvents.forEach(ev=>{let d=new Date(Math.max(ev.start,monthStart));const end=new Date(Math.min(ev.end,monthEnd));for(;d<=end;d.setDate(d.getDate()+1))daySet.add(dateKey(d));});document.getElementById('calendarSummary').innerHTML=`<div class="calendar-summary-item"><strong>${monthEvents.length}</strong>本月合作</div><div class="calendar-summary-item"><strong>${daySet.size}</strong>合作天數</div>`;if(selectedCalendarDate)renderCalendarDay(selectedCalendarDate);}
+  function renderCalendarDay(key){const panel=document.getElementById('calendarDayPanel');if(!panel)return;const evs=getCalendarEvents().filter(ev=>key>=dateKey(ev.start)&&key<=dateKey(ev.end));const [y,m,d]=key.split('-');if(!evs.length){panel.innerHTML=`<div class="calendar-day-empty"><h3>📅 ${y}/${+m}/${+d}</h3>這一天沒有合作排程。</div>`;return;}panel.innerHTML=`<h3>📅 ${y}/${+m}/${+d}</h3>`+evs.map(ev=>`<div class="calendar-event-card" onclick="openCaseFromCalendar('${ev.id}')"><strong>${escapeHtml(ev.brand)}</strong><span>${escapeHtml(ev.product||'未填產品')} · ${(ev.modes||[]).join('、')||'未設定合作模式'}</span><span>${ev.range?'合作期間：'+dateKey(ev.start)+'～'+dateKey(ev.end):'合作日期：'+dateKey(ev.start)}</span></div>`).join('');}
+  window.openCaseFromCalendar=function(id){const b=document.querySelector('#viewTabs .tab[data-view="board"]');if(b)b.click();setTimeout(()=>{if(typeof editCase==='function')editCase(id);},50);};
+  document.getElementById('calendarGrid')?.addEventListener('click',e=>{const c=e.target.closest('[data-calendar-date]');if(!c)return;selectedCalendarDate=c.dataset.calendarDate;renderCalendar();renderCalendarDay(selectedCalendarDate);});
+  document.getElementById('calendarPrev')?.addEventListener('click',()=>{calendarCursor.setMonth(calendarCursor.getMonth()-1);selectedCalendarDate=null;renderCalendar();});
+  document.getElementById('calendarNext')?.addEventListener('click',()=>{calendarCursor.setMonth(calendarCursor.getMonth()+1);selectedCalendarDate=null;renderCalendar();});
+  document.getElementById('calendarToday')?.addEventListener('click',()=>{calendarCursor=new Date();selectedCalendarDate=dateKey(new Date());renderCalendar();renderCalendarDay(selectedCalendarDate);});
+  function renderCompetition(){const q=(document.getElementById('competitionSearch')?.value||'').trim().toLowerCase(),today=new Date();today.setHours(0,0,0,0);const all=(cases||[]).filter(c=>c.hasNonCompete&&c.nonCompeteDate&&c.nonCompeteDate!=='unlimited'&&parseLocalDate(c.nonCompeteDate)>=today),filtered=all.filter(c=>!q||[c.brand,c.product,...(c.types||[])].join(' ').toLowerCase().includes(q));const soon=all.filter(c=>(parseLocalDate(c.nonCompeteDate)-today)/86400000<=30).length;document.getElementById('competitionCount').textContent=all.length;document.getElementById('competitionSoonCount').textContent=soon;const list=document.getElementById('competitionList');if(!filtered.length){list.innerHTML='<div class="lead-empty">目前沒有符合條件的競業案件。</div>';return;}list.innerHTML=filtered.sort((a,b)=>a.nonCompeteDate.localeCompare(b.nonCompeteDate)).map(c=>{const days=Math.ceil((parseLocalDate(c.nonCompeteDate)-today)/86400000),soon=days<=30;return `<div class="competition-card ${soon?'soon':''}"><h3>${escapeHtml(c.brand||'未命名品牌')}</h3><div class="competition-item">產品：${escapeHtml(c.product||'未填產品')}</div><div class="competition-item">合作項目：${escapeHtml((c.types||[]).join('、')||'未設定')}</div><div class="competition-days ${soon?'soon':'normal'}">${soon?'🟡':'🟢'}剩餘 ${days} 天 · 競業截止 ${escapeHtml(c.nonCompeteDate)}</div><div class="competition-source">來源案件：${escapeHtml(c.caseNo||'未編號')}</div></div>`;}).join('');}
+  document.getElementById('competitionSearch')?.addEventListener('input',renderCompetition);
+
   document.getElementById('viewTabs').addEventListener('click', e => {
     const btn = e.target.closest('.tab');
     if(!btn) return;
     document.querySelectorAll('#viewTabs .tab').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     const view = btn.dataset.view;
+    document.getElementById('calendarView').classList.toggle('app-hidden', view !== 'calendar');
     document.getElementById('boardView').classList.toggle('app-hidden', view !== 'board');
     document.getElementById('reportView').classList.toggle('app-hidden', view !== 'report');
     document.getElementById('leadsView').classList.toggle('app-hidden', view !== 'leads');
+    document.getElementById('quotesView').classList.toggle('app-hidden', view !== 'quotes');
+    document.getElementById('competitionView').classList.toggle('app-hidden', view !== 'competition');
+    if(view === 'calendar') renderCalendar();
     if(view === 'report') renderReport();
     if(view === 'leads') loadLeads();
+    if(view === 'quotes') loadQuotes();
+    if(view === 'competition') renderCompetition();
   });
 
   // 頁面持續開啟時，每 60 秒再檢查一次日期。
@@ -3260,29 +3593,4 @@
   });
 </script>
 </body>
-</html
-  /* ===== 洽談中獨立頁面 ===== */
-  .lead-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
-  .lead-toolbar .tab{cursor:pointer;}
-  .lead-add-card{background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:16px;}
-  .lead-add-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;}
-  .lead-add-grid input,.lead-add-grid select,.lead-add-grid textarea{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:7px;background:rgba(255,255,255,.08);color:var(--text);padding:8px 9px;font:inherit;}
-  .lead-add-grid textarea{min-height:72px;resize:vertical;grid-column:1/-1;}
-  .lead-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px;}
-  .lead-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px;}
-  .lead-card{background:rgba(255,255,255,.055);border:1px solid var(--line);border-radius:12px;padding:13px;min-width:0;}
-  .lead-card.stale{border-color:rgba(217,123,83,.65);}
-  .lead-card.closed{opacity:.78;}
-  .lead-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;}
-  .lead-brand{font-size:16px;font-weight:800;color:var(--text);margin:0;}
-  .lead-product{font-size:12px;color:var(--text-soft);margin:4px 0 8px;}
-  .lead-status{display:inline-flex;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.09);font-size:10px;font-weight:700;color:var(--text);white-space:nowrap;}
-  .lead-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:9px 0;}
-  .lead-meta div{padding:7px 8px;border-radius:7px;background:rgba(255,255,255,.045);font-size:11px;color:var(--text-soft);min-width:0;}
-  .lead-meta strong{display:block;color:var(--text);font-size:11px;margin-bottom:2px;}
-  .lead-note{font-size:11px;line-height:1.5;color:var(--text-soft);white-space:pre-wrap;margin:8px 0;}
-  .lead-danger{color:#d88a70!important;}
-  .lead-success{color:#8fbf9a!important;}
-  .lead-empty{padding:28px;text-align:center;color:var(--text-soft);border:1px dashed var(--line);border-radius:10px;}
-  @media(max-width:760px){.lead-add-grid{grid-template-columns:1fr 1fr}.lead-meta{grid-template-columns:1fr}.lead-list{grid-template-columns:1fr;}}
->
+</html>
