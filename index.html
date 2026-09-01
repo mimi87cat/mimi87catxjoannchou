@@ -2543,15 +2543,19 @@
   }
 
   function isOverdue(c){
-    const draft = c.dates && c.dates.draft;
-    if(!draft || c.stage !== '製作中') return false;
+    const dates = c.dates || {};
+    const draft = dates.draft;
+    // 已填寫「初稿提供日期」代表初稿已完成，不再顯示逾期
+    if(!draft || dates.draftProvided || c.stage !== '製作中') return false;
     const today = new Date(); today.setHours(0,0,0,0);
     return new Date(draft) < today;
   }
 
   function isScriptOverdue(c){
-    const script = c.dates && c.dates.script;
-    if(!script || c.stage !== '製作中') return false;
+    const dates = c.dates || {};
+    const script = dates.script;
+    // 已填寫「腳本提供日期」代表腳本已完成，不再顯示逾期
+    if(!script || dates.scriptProvided || c.stage !== '製作中') return false;
     const today = new Date(); today.setHours(0,0,0,0);
     return new Date(script) < today;
   }
@@ -2584,14 +2588,16 @@
     allCases.forEach(c => {
       if(!c.dates || c.stage !== '製作中') return;
 
-      if(c.dates.draft){
+      // 初稿已提供，就不再列入「即將到期／逾期」
+      if(c.dates.draft && !c.dates.draftProvided){
         const days = daysUntil(c.dates.draft);
         if(days <= 7){
           upcoming.push({ c, days, type: '初稿' });
         }
       }
 
-      if(c.dates.script){
+      // 腳本已提供，就不再列入「即將到期／逾期」
+      if(c.dates.script && !c.dates.scriptProvided){
         const days = daysUntil(c.dates.script);
         if(days <= 7){
           upcoming.push({ c, days, type: '腳本' });
@@ -2826,14 +2832,14 @@
             let deadlineBadgeHtml = '';
             if(c.stage === '製作中'){
               const badges = [];
-              if(d.draft){
+              if(d.draft && !d.draftProvided){
                 const daysLeft = daysUntil(d.draft);
                 if(daysLeft <= 7){
                   const label = daysLeft < 0 ? '已逾期 ' + Math.abs(daysLeft) + ' 天' : (daysLeft === 0 ? '今天截止' : daysLeft + ' 天後截止');
                   badges.push('初稿 ' + label);
                 }
               }
-              if(d.script){
+              if(d.script && !d.scriptProvided){
                 const daysLeft = daysUntil(d.script);
                 if(daysLeft <= 7){
                   const label = daysLeft < 0 ? '已逾期 ' + Math.abs(daysLeft) + ' 天' : (daysLeft === 0 ? '今天截止' : daysLeft + ' 天後截止');
