@@ -1893,8 +1893,7 @@
     const dates={contract:null,script:null,scriptProvided:null,draft:null,draftProvided:null,collab:l.expectedDate||null,collabStart:null,collabEnd:null};
     const modes=Array.isArray(l.modes) ? l.modes : (l.mode ? l.mode.split(/[,，\/／]/).map(x=>x.trim()).filter(Boolean) : []);
     const platforms=Array.isArray(l.platforms) ? l.platforms : (l.platform ? l.platform.split(/[,，\/／]/).map(x=>x.trim()).filter(Boolean) : ['IG']);
-    // 產品名稱以「洽談中」的產品欄位作為唯一來源，轉正式案件時同步寫入 taskProduct。
-    // 之後案件看板的任務卡片一律優先使用 taskProduct，確保與正式案件標題一致。
+    // 轉正式案件時，產品名稱直接從洽談中的 product 寫入正式案件 product。
     const productName=String(l.product||'').trim();
     const types=['其他'];
     const newId=uid();
@@ -1904,7 +1903,7 @@
       platforms,types,modes,commissionRate:null,salesAmount:null,dates,
       hasNonCompete:false,nonCompetePeriod:null,nonCompeteDate:null,
       authTypes:[],authPeriod:null,authDate:null,authorizationExtensions:[],
-      paidDate:null,stage:'製作中',sourceLeadId:id,createdAt:Date.now()
+      paidDate:null,stage:'製作中',sourceLeadId:id,productSyncVersion:64,createdAt:Date.now()
     });
     await update(ref(db,`users/${currentUser.uid}/leads/${id}`),{status:'已轉正式案件',convertedAt:Date.now(),convertedCaseId:newId,updatedAt:Date.now()});
     await loadLeads();
@@ -2336,6 +2335,48 @@
     }
   }
 
+
+  // v64：修復「洽談中轉正式案件」的既有資料。
+  // 已轉正式案件會保留 sourceLeadId，因此第一次載入時可用原洽談資料
+  // 校正正式案件的 product。校正後寫入 productSyncVersion，之後不會反覆覆蓋
+  // 使用者在正式案件中手動修改過的產品名稱。
+  async function syncConvertedCaseProducts(uid){
+    if(!uid || !Array.isArray(cases) || !Array.isArray(leads)) return false;
+
+    const patches = [];
+    cases.forEach(c => {
+      if(!c || !c.sourceLeadId || Number(c.productSyncVersion || 0) >= 64) return;
+      const lead = leads.find(l => l.id === c.sourceLeadId);
+      if(!lead) return;
+
+      const leadProduct = String(lead.product || '').trim();
+      const caseProduct = String(c.product || '').trim();
+
+      // 只有兩邊確實存在產品名稱時才進行校正。
+      if(leadProduct && leadProduct !== caseProduct){
+        patches.push(
+          update(
+            ref(db, `users/${uid}/cases/${c.id}`),
+            { product: leadProduct, productSyncVersion: 64 }
+          )
+        );
+      }else{
+        patches.push(
+          update(
+            ref(db, `users/${uid}/cases/${c.id}`),
+            { productSyncVersion: 64 }
+          )
+        );
+      }
+    });
+
+    if(patches.length){
+      await Promise.all(patches);
+      return true;
+    }
+    return false;
+  }
+
   function initRealtimeSync(uid) {
     casesRef = ref(db, `users/${uid}/cases`);
     onValue(casesRef, async (snapshot) => {
@@ -2354,18 +2395,21 @@
        */
       await autoMoveApprovedCasesToPending();
 
+      // 先載入洽談資料，再修復「洽談中 → 正式案件」的既有產品名稱。
+      // 修復完成後 Firebase onValue 會再次觸發，屆時畫面會使用修正後的 product。
+      await loadLeads();
+      await syncConvertedCaseProducts(uid);
+
       renderYearFilters();
       render();
       // 合作月曆是預設首頁，Firebase 首次回傳資料後立即重繪。
       // 過去只呼叫 render()，因此第一次進入頁面可能是空白，重整後才出現。
       renderCalendar();
       renderCompetition();
-      loadLeads();
     });
   }
 
-  // 舊案件相容：若沒有 taskProduct，任務卡片直接沿用正式案件的 product。
-  // 不主動改寫舊資料，避免不必要的 Firebase 寫入。
+  // v64：舊的洽談轉案資料會以 sourceLeadId 對應原洽談產品名稱進行一次性校正。
   // v63：產品名稱唯一來源。
 // 正式案件的 product 才是產品名稱；taskProduct 不再參與任何顯示或編輯。
 function getCaseProduct(c){
