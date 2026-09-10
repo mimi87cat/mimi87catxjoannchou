@@ -909,6 +909,7 @@
  @media(max-width:700px){.quotes-page-header{align-items:flex-start;flex-direction:column}.quote-form-grid{grid-template-columns:1fr}.quote-clean-row{grid-template-columns:minmax(0,1fr) 120px 76px}.quote-clean-price{font-size:16px}}.quote-form-grid{grid-template-columns:1fr}.quote-list{grid-template-columns:1fr}.quote-summary{align-items:flex-start;gap:8px;flex-direction:column}}
 </style>
 
+<!-- v63: unified product source -->
 <style id="v61-ui-overrides">
   /* ===== v61 UI 優化 ===== */
   :root{
@@ -1895,11 +1896,11 @@
     // 產品名稱以「洽談中」的產品欄位作為唯一來源，轉正式案件時同步寫入 taskProduct。
     // 之後案件看板的任務卡片一律優先使用 taskProduct，確保與正式案件標題一致。
     const productName=String(l.product||'').trim();
-    const types=productName ? productName.split(/[,，\/／]/).map(x=>x.trim()).filter(Boolean) : ['其他'];
+    const types=['其他'];
     const newId=uid();
     const caseNo=await generateCaseNo(dates,modes,null);
     await set(ref(db,`users/${currentUser.uid}/cases/${newId}`),{
-      caseNo,brand:l.brand,product:productName,taskProduct:productName,fee:l.fee||0,
+      caseNo,brand:l.brand,product:productName,fee:l.fee||0,
       platforms,types,modes,commissionRate:null,salesAmount:null,dates,
       hasNonCompete:false,nonCompetePeriod:null,nonCompeteDate:null,
       authTypes:[],authPeriod:null,authDate:null,authorizationExtensions:[],
@@ -2365,7 +2366,13 @@
 
   // 舊案件相容：若沒有 taskProduct，任務卡片直接沿用正式案件的 product。
   // 不主動改寫舊資料，避免不必要的 Firebase 寫入。
-  function uid(){ return 'c' + Date.now() + Math.random().toString(36).slice(2,7); }
+  // v63：產品名稱唯一來源。
+// 正式案件的 product 才是產品名稱；taskProduct 不再參與任何顯示或編輯。
+function getCaseProduct(c){
+  return String(c && c.product != null ? c.product : '').trim();
+}
+
+function uid(){ return 'c' + Date.now() + Math.random().toString(36).slice(2,7); }
 
   function getTargetYear(dates, modes, paidDate) {
     const d = dates || {};
@@ -2700,7 +2707,7 @@
 
     if(editingId){
       await update(ref(db, `users/${currentUser.uid}/cases/` + editingId), {
-        brand, platforms, types, modes, product, taskProduct: product, fee, dates, hasNonCompete, nonCompetePeriod, nonCompeteDate,
+        brand, platforms, types, modes, product, fee, dates, hasNonCompete, nonCompetePeriod, nonCompeteDate,
         authTypes, authPeriod, authDate, authorizationExtensions, commissionRate, paidDate
       });
     }else{
@@ -2732,7 +2739,7 @@
     document.getElementById('paidDateWrap').classList.add('show');
 
     document.getElementById('inputBrand').value = c.brand || '';
-    document.getElementById('inputProduct').value = c.product || '';
+    document.getElementById('inputProduct').value = getCaseProduct(c);
     document.getElementById('inputFee').value = c.fee || '';
 
     const d = c.dates || {};
@@ -3186,7 +3193,7 @@
 
             const d = c.dates || {};
             // 正式案件與任務卡片共用同一個產品名稱來源。
-            const displayProduct = String(c.product ?? '').trim();
+            const displayProduct = getCaseProduct(c);
             let collabStr = null;
             if(d.collabStart || d.collabEnd){
               collabStr = '合 ' + (d.collabStart ? fmtDue(d.collabStart) : '未定') + '-' + (d.collabEnd ? fmtDue(d.collabEnd) : '未定');
@@ -3604,7 +3611,7 @@
   let selectedCalendarDate = null;
   function dateKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
   function parseLocalDate(value){if(!value)return null;const m=String(value).match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?new Date(+m[1],+m[2]-1,+m[3]):null;}
-  function getCalendarEvents(){const out=[];(cases||[]).forEach(c=>{const d=c.dates||{},range=Array.isArray(c.modes)&&(c.modes.includes('團購')||c.modes.includes('分潤'));const start=parseLocalDate(range?(d.collabStart||d.collabEnd):d.collab);const end=parseLocalDate(range?(d.collabEnd||d.collabStart):d.collab);if(start)out.push({id:c.id,brand:c.brand||'未命名案件',product:c.product||'',modes:c.modes||[],start,end:end||start,range});});return out;}
+  function getCalendarEvents(){const out=[];(cases||[]).forEach(c=>{const d=c.dates||{},range=Array.isArray(c.modes)&&(c.modes.includes('團購')||c.modes.includes('分潤'));const start=parseLocalDate(range?(d.collabStart||d.collabEnd):d.collab);const end=parseLocalDate(range?(d.collabEnd||d.collabStart):d.collab);if(start)out.push({id:c.id,brand:c.brand||'未命名案件',product:getCaseProduct(c),modes:c.modes||[],start,end:end||start,range});});return out;}
   function renderCalendar(){const y=calendarCursor.getFullYear(),m=calendarCursor.getMonth(),label=document.getElementById('calendarMonthLabel'),grid=document.getElementById('calendarGrid');if(!label||!grid)return;label.textContent=`${y}年${m+1}月`;const first=new Date(y,m,1),offset=(first.getDay()+6)%7,days=new Date(y,m+1,0).getDate(),today=dateKey(new Date()),events=getCalendarEvents();let html='';for(let i=0;i<42;i++){const d=new Date(y,m,i-offset+1),key=dateKey(d),inMonth=d.getMonth()===m,evs=events.filter(ev=>key>=dateKey(ev.start)&&key<=dateKey(ev.end));const cls=['calendar-cell',inMonth?'':'muted',key===today?'today':'',key===selectedCalendarDate?'selected':''].filter(Boolean).join(' ');html+=`<div class="${cls}" data-calendar-date="${key}"><div class="calendar-day-num">${d.getDate()}</div>`;evs.slice(0,3).forEach(ev=>html+=`<span class="calendar-event ${ev.range?'range':''}">${escapeHtml(ev.brand)}</span>`);if(evs.length>3)html+=`<div class="calendar-more">＋${evs.length-3} 個合作</div>`;html+='</div>';}grid.innerHTML=html;const monthStart=new Date(y,m,1),monthEnd=new Date(y,m+1,0),monthEvents=events.filter(ev=>ev.start<=monthEnd&&ev.end>=monthStart),daySet=new Set();monthEvents.forEach(ev=>{let d=new Date(Math.max(ev.start,monthStart));const end=new Date(Math.min(ev.end,monthEnd));for(;d<=end;d.setDate(d.getDate()+1))daySet.add(dateKey(d));});document.getElementById('calendarSummary').innerHTML=`<div class="calendar-summary-item"><strong>${monthEvents.length}</strong>本月合作</div><div class="calendar-summary-item"><strong>${daySet.size}</strong>合作天數</div>`;if(selectedCalendarDate)renderCalendarDay(selectedCalendarDate);}
   function renderCalendarDay(key){const panel=document.getElementById('calendarDayPanel');if(!panel)return;const evs=getCalendarEvents().filter(ev=>key>=dateKey(ev.start)&&key<=dateKey(ev.end));const [y,m,d]=key.split('-');if(!evs.length){panel.innerHTML=`<div class="calendar-day-empty"><h3>📅 ${y}/${+m}/${+d}</h3>這一天沒有合作排程。</div>`;return;}panel.innerHTML=`<h3>📅 ${y}/${+m}/${+d}</h3>`+evs.map(ev=>`<div class="calendar-event-card" onclick="openCaseFromCalendar('${ev.id}')"><strong>${escapeHtml(ev.brand)}</strong><span>${escapeHtml(ev.product||'未填產品')} · ${(ev.modes||[]).join('、')||'未設定合作模式'}</span><span>${ev.range?'合作期間：'+dateKey(ev.start)+'～'+dateKey(ev.end):'合作日期：'+dateKey(ev.start)}</span></div>`).join('');}
   window.openCaseFromCalendar=function(id){const b=document.querySelector('#viewTabs .tab[data-view="board"]');if(b)b.click();setTimeout(()=>{if(typeof editCase==='function')editCase(id);},50);};
@@ -3612,7 +3619,7 @@
   document.getElementById('calendarPrev')?.addEventListener('click',()=>{calendarCursor.setMonth(calendarCursor.getMonth()-1);selectedCalendarDate=null;renderCalendar();});
   document.getElementById('calendarNext')?.addEventListener('click',()=>{calendarCursor.setMonth(calendarCursor.getMonth()+1);selectedCalendarDate=null;renderCalendar();});
   document.getElementById('calendarToday')?.addEventListener('click',()=>{calendarCursor=new Date();selectedCalendarDate=dateKey(new Date());renderCalendar();renderCalendarDay(selectedCalendarDate);});
-  function renderCompetition(){const q=(document.getElementById('competitionSearch')?.value||'').trim().toLowerCase(),today=new Date();today.setHours(0,0,0,0);const all=(cases||[]).filter(c=>c.hasNonCompete&&c.nonCompeteDate&&c.nonCompeteDate!=='unlimited'&&parseLocalDate(c.nonCompeteDate)>=today),filtered=all.filter(c=>!q||[c.brand,c.product,...(c.types||[])].join(' ').toLowerCase().includes(q));const soon=all.filter(c=>(parseLocalDate(c.nonCompeteDate)-today)/86400000<=30).length;document.getElementById('competitionCount').textContent=all.length;document.getElementById('competitionSoonCount').textContent=soon;const list=document.getElementById('competitionList');if(!filtered.length){list.innerHTML='<div class="lead-empty">目前沒有符合條件的競業案件。</div>';return;}list.innerHTML=filtered.sort((a,b)=>a.nonCompeteDate.localeCompare(b.nonCompeteDate)).map(c=>{const days=Math.ceil((parseLocalDate(c.nonCompeteDate)-today)/86400000),soon=days<=30;return `<div class="competition-card ${soon?'soon':''}"><h3>${escapeHtml(c.brand||'未命名品牌')}</h3><div class="competition-item">產品：${escapeHtml(c.product||'未填產品')}</div><div class="competition-item">合作項目：${escapeHtml((c.types||[]).join('、')||'未設定')}</div><div class="competition-days ${soon?'soon':'normal'}">${soon?'🟡':'🟢'}剩餘 ${days} 天 · 競業截止 ${escapeHtml(c.nonCompeteDate)}</div><div class="competition-source">來源案件：${escapeHtml(c.caseNo||'未編號')}</div></div>`;}).join('');}
+  function renderCompetition(){const q=(document.getElementById('competitionSearch')?.value||'').trim().toLowerCase(),today=new Date();today.setHours(0,0,0,0);const all=(cases||[]).filter(c=>c.hasNonCompete&&c.nonCompeteDate&&c.nonCompeteDate!=='unlimited'&&parseLocalDate(c.nonCompeteDate)>=today),filtered=all.filter(c=>!q||[c.brand,c.product,...(c.types||[])].join(' ').toLowerCase().includes(q));const soon=all.filter(c=>(parseLocalDate(c.nonCompeteDate)-today)/86400000<=30).length;document.getElementById('competitionCount').textContent=all.length;document.getElementById('competitionSoonCount').textContent=soon;const list=document.getElementById('competitionList');if(!filtered.length){list.innerHTML='<div class="lead-empty">目前沒有符合條件的競業案件。</div>';return;}list.innerHTML=filtered.sort((a,b)=>a.nonCompeteDate.localeCompare(b.nonCompeteDate)).map(c=>{const days=Math.ceil((parseLocalDate(c.nonCompeteDate)-today)/86400000),soon=days<=30;return `<div class="competition-card ${soon?'soon':''}"><h3>${escapeHtml(c.brand||'未命名品牌')}</h3><div class="competition-item">產品：${escapeHtml(getCaseProduct(c)||'未填產品')}</div><div class="competition-item">合作項目：${escapeHtml((c.types||[]).join('、')||'未設定')}</div><div class="competition-days ${soon?'soon':'normal'}">${soon?'🟡':'🟢'}剩餘 ${days} 天 · 競業截止 ${escapeHtml(c.nonCompeteDate)}</div><div class="competition-source">來源案件：${escapeHtml(c.caseNo||'未編號')}</div></div>`;}).join('');}
   document.getElementById('competitionSearch')?.addEventListener('input',renderCompetition);
 
   document.getElementById('viewTabs').addEventListener('click', e => {
@@ -3657,7 +3664,7 @@
         '案件編號': c.caseNo || '',
         '階段': c.stage || '',
         '品牌': c.brand || '',
-        '產品': c.product || '',
+        '產品': getCaseProduct(c),
         '保底金額': c.fee || 0,
         '合作平台': (c.platforms || []).join(', '),
         '合作項目': (c.types || []).join(', '),
