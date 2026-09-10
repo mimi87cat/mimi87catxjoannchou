@@ -2700,7 +2700,7 @@
 
     if(editingId){
       await update(ref(db, `users/${currentUser.uid}/cases/` + editingId), {
-        brand, platforms, types, modes, product, fee, dates, hasNonCompete, nonCompetePeriod, nonCompeteDate,
+        brand, platforms, types, modes, product, taskProduct: product, fee, dates, hasNonCompete, nonCompetePeriod, nonCompeteDate,
         authTypes, authPeriod, authDate, authorizationExtensions, commissionRate, paidDate
       });
     }else{
@@ -2732,7 +2732,7 @@
     document.getElementById('paidDateWrap').classList.add('show');
 
     document.getElementById('inputBrand').value = c.brand || '';
-    document.getElementById('inputProduct').value = c.product || c.taskProduct || '';
+    document.getElementById('inputProduct').value = c.product || '';
     document.getElementById('inputFee').value = c.fee || '';
 
     const d = c.dates || {};
@@ -3186,7 +3186,7 @@
 
             const d = c.dates || {};
             // 正式案件與任務卡片共用同一個產品名稱來源。
-            const displayProduct = String(c.taskProduct ?? c.product ?? '').trim();
+            const displayProduct = String(c.product ?? '').trim();
             let collabStr = null;
             if(d.collabStart || d.collabEnd){
               collabStr = '合 ' + (d.collabStart ? fmtDue(d.collabStart) : '未定') + '-' + (d.collabEnd ? fmtDue(d.collabEnd) : '未定');
